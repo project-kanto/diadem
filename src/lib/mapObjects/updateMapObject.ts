@@ -26,6 +26,7 @@ import { featureFamily } from "@/lib/utils/features";
 import { getUserSettings } from "@/lib/services/userSettings.svelte.js";
 import { currentTimestamp } from "@/lib/utils/currentTimestamp";
 import { getHeaders, parseResponse } from "@/lib/utils/requests";
+import { appPath } from "@/lib/utils/appPath";
 import { SvelteMap } from "svelte/reactivity";
 
 export type MapObjectRequestData = Bounds & { filter: AnyFilter | undefined; since?: number };
@@ -62,7 +63,7 @@ export async function fetchMapObjects<T extends MapData>(
 		since
 	};
 	try {
-		const response = await fetch("/api/" + type, {
+		const response = await fetch(appPath("/api/" + type), {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: getHeaders({ msgpack: true }),

@@ -44,8 +44,7 @@ export async function fetchKojiGeofences(
 ): Promise<KojiFeatures | undefined> {
 	const config = getServerConfig();
 	if (!config.koji || !config.koji.url) {
-		log.warning("Koji was called, but is not configured");
-		return;
+		return [];
 	}
 
 	thisFetch = thisFetch ?? fetch;

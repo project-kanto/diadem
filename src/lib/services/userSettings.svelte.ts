@@ -1,4 +1,5 @@
 import { browser } from "$app/environment";
+import { appPath } from "@/lib/utils/appPath";
 import type {
 	FilterGym,
 	FilterNest,
@@ -141,7 +142,7 @@ export function getDefaultUserSettings(): UserSettings {
 		mapIconSize: 1,
 		externalMapProvider: ExternalMapProvider.GOOGLE,
 		filters: {
-			pokemon: { category: "pokemon", ...defaultFilter() },
+			pokemon: { category: "pokemon", ...defaultFilter(true) },
 			pokestop: getDefaultPokestopFilter(),
 			gym: getDefaultGymFilter(),
 			station: getDefaultStationFilter(),
@@ -191,7 +192,7 @@ export function getDefaultIconSet(type: MapObjectType) {
 let userSettings: UserSettings = $state({});
 
 export async function getUserSettingsFromServer() {
-	const response = await fetch("/api/user/settings");
+	const response = await fetch(appPath("/api/user/settings"));
 	const dbUserSettings: { error?: string; result: UserSettings } = await response.json();
 
 	// User has existing user settings, merge with defaults and keep the local copy in sync.
@@ -221,7 +222,7 @@ export function updateUserSettings() {
 	}
 
 	if (getUserDetails().details) {
-		fetch("/api/user/settings", { method: "POST", body: serializedUserSettings }).then();
+		fetch(appPath("/api/user/settings"), { method: "POST", body: serializedUserSettings }).then();
 	}
 }
 

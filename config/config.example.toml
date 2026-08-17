@@ -2,6 +2,9 @@
 level = "info" # crit, error, warning, info, debug
 # file = "/var/log/diadem.log"
 
+[server.kanto]
+url = "https://dev.kanto.ac/map/"
+
 [server.golbat]
 url = "http://127.0.0.1:9001"
 secret = ""
@@ -14,11 +17,11 @@ defaultNestName = "Unknown Nest"
 url = "http://127.0.0.1:7272"
 secret = ""
 
-# Optional Koji integrtion. Comment out to disable
-[server.koji]
-url = "http://127.0.0.1:8080"
-secret = "secret"
-projectName = "reactmap"
+# Koji is not used by the public Kanto map.
+#[server.koji]
+#url = "http://127.0.0.1:8080"
+#secret = "secret"
+#projectName = "reactmap"
 
 # For address search, both Pelias and Nominatim are supported.
 # Using Photon is highly recommended. Refer to the readme for more info.
@@ -80,10 +83,10 @@ serverId = "1359028304128245934"
 #
 # Below are some examples
 
-# Everyone has access to everything
+# Everyone can see the Kanto 2016 map objects implemented by this prototype.
 [[server.permissions]]
 everyone = true
-features = ["*"]
+features = ["pokemon", "pokestop", "gym"]
 
 # Every user gets access to gyms (incl. raids) and pokestops (incl quests, lures, etc) in New York
 #[[server.permissions]]
@@ -159,14 +162,14 @@ user = ""
 password = ""
 
 [client.general]
-mapName = "Diadem"
+mapName = "Kanto Map v2"
 defaultLocale = "en"  # Only used in link previews, client locale is set based on user preference
 customHome = false  # If enabled, path / will show the config/Home.svelte component, so you can build your own homepage. The map can be found under /map
 
-# Starting map position for new users
-defaultLat = 51.516855
-defaultLon = -0.080500
-defaultZoom = 15
+# Starting map position for new users. Leave unset to use Diadem's generic default.
+#defaultLat = 0
+#defaultLon = 0
+#defaultZoom = 15
 
 # Min/Max zoom for users, leave commented out to disable
 #minZoom = 0
@@ -193,10 +196,10 @@ diademUrl = "https://example.com"  # your diadem url, must be accessible from yo
 # Note that certain tools may be disabled if they're not set up or users lack permissions.
 [client.tools]
 # Whether to show the tools menu as a whole
-showToolsMenu = true
+showToolsMenu = false
 
-coverageMap = true
-scout = true
+coverageMap = false
+scout = false
 
 # Map Positions for various maps in the UI
 [client.mapPositions]

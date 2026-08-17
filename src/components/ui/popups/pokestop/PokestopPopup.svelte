@@ -68,6 +68,9 @@
 	import Countdown from "@/components/utils/Countdown.svelte";
 	import AboutFort from "@/components/ui/popups/common/AboutFort.svelte";
 	import { givesQuestBackground } from "$lib/utils/pokestopUtils";
+	import { hasFeatureAnywhere } from "$lib/services/user/checkPerm";
+	import { getUserDetails } from "$lib/services/user/userDetails.svelte";
+	import { Features } from "$lib/utils/features";
 
 	export { image, overview, main };
 
@@ -310,19 +313,18 @@
 			</IconValue>
 		</BasicMainCard>
 	{:else}
-		<TitledMainSection Icon={QuestIcon} title={m.pogo_quest()} disabled={!Boolean(quest)}>
+		<TitledMainSection
+			Icon={QuestIcon}
+			title={m.pogo_quest()}
+			disabled={!Boolean(quest)}
+			hidden={!hasFeatureAnywhere(getUserDetails().permissions, Features.QUEST)}
+		>
 			<BasicMainCard>
 				{#if !quest}
 					{m.no_quest_scanned_today()}
 				{:else}
-					<div
-						class="mb-3 flex items-center gap-2"
-						class:gap-3!={givesQuestBackground(quest)}
-					>
-						<div
-							class="relative size-7 shrink-0"
-							class:size-9!={givesQuestBackground(quest)}
-						>
+					<div class="mb-3 flex items-center gap-2" class:gap-3!={givesQuestBackground(quest)}>
+						<div class="relative size-7 shrink-0" class:size-9!={givesQuestBackground(quest)}>
 							<ImagePopup
 								class="absolute size-full z-10"
 								src={getIconReward(quest.reward.type, quest.reward.info)}
@@ -347,7 +349,6 @@
 								</p>
 							{/if}
 						</div>
-
 					</div>
 
 					<div class="bg-accent-highlight rounded-md py-3 px-4 mb-3">
@@ -362,7 +363,11 @@
 					<StatsMainCardEntry
 						Icon={Clock}
 						name={m.popup_found()}
-						value={timestampToLocalTime(quest.timestamp, { showDate: true, showSeconds: false, dayLowerCase: false })}
+						value={timestampToLocalTime(quest.timestamp, {
+							showDate: true,
+							showSeconds: false,
+							dayLowerCase: false
+						})}
 					/>
 
 					<QuickSearchButton
@@ -380,6 +385,7 @@
 			Icon={InvasionIcon}
 			title={m.pogo_invasion()}
 			disabled={invasions.length === 0}
+			hidden={!hasFeatureAnywhere(getUserDetails().permissions, Features.INVASION)}
 		>
 			<div class="space-y-4">
 				{#if invasions.length === 0}
@@ -489,6 +495,7 @@
 			Icon={Flower}
 			title={m.lure_module()}
 			disabled={(data?.lure_expire_timestamp ?? 0) < currentTimestamp()}
+			hidden={!hasFeatureAnywhere(getUserDetails().permissions, Features.LURE)}
 		>
 			<BasicMainCard>
 				{#if !data?.lure_expire_timestamp}
@@ -515,7 +522,12 @@
 			</BasicMainCard>
 		</TitledMainSection>
 
-		<TitledMainSection Icon={Rat} title={m.kecleon()} disabled={kecleons.length === 0}>
+		<TitledMainSection
+			Icon={Rat}
+			title={m.kecleon()}
+			disabled={kecleons.length === 0}
+			hidden={!hasFeatureAnywhere(getUserDetails().permissions, Features.KECLEON)}
+		>
 			<BasicMainCard>
 				{#if kecleons.length === 0}
 					{m.no_kecleon_hiding_here()}
@@ -540,6 +552,7 @@
 			Icon={Medal}
 			title={m.contest()}
 			disabled={contests.length === 0 || (data?.showcase_expiry ?? 0) < currentTimestamp()}
+			hidden={!hasFeatureAnywhere(getUserDetails().permissions, Features.CONTEST)}
 		>
 			{#if contests.length === 0 || (data?.showcase_expiry ?? 0) < currentTimestamp()}
 				<BasicMainCard>
@@ -603,7 +616,7 @@
 											{#if entry.background}
 												<ImagePopup
 													class="absolute size-12 mask-[radial-gradient(circle,black_35%,transparent_70%)]"
-													src={resize(getIconBackground(entry.background), {width: 64})}
+													src={resize(getIconBackground(entry.background), { width: 64 })}
 													alt={m.background()}
 												/>
 											{/if}

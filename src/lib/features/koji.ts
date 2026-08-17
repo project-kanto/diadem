@@ -1,4 +1,5 @@
 import type { Feature, Polygon } from "geojson";
+import { appPath } from "@/lib/utils/appPath";
 
 export type KojiReference = {
 	id: number;
@@ -19,7 +20,7 @@ export type KojiFeatures = KojiFeature[];
 let geofences: KojiFeatures = [];
 
 export async function loadKojiGeofences() {
-	const result = await fetch("/api/koji");
+	const result = await fetch(appPath("/api/koji"));
 
 	if (!result.ok) {
 		// this also errors when koji is disabled by admin, but checking isSupportedFeature would race on initial loading

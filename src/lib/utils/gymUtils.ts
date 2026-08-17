@@ -83,7 +83,7 @@ export function getDefaultGymFilter(): FilterGym {
 		category: "gym",
 		...defaultFilter(true),
 		gymPlain: { category: "gymPlain", ...defaultFilter(true) },
-		raid: { category: "raid", ...defaultFilter(true) }
+		raid: { category: "raid", ...defaultFilter() }
 	};
 }
 

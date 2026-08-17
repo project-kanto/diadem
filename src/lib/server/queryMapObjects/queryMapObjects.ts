@@ -15,6 +15,8 @@ import { SpawnpointQuery } from "@/lib/server/queryMapObjects/querySpawnpoint";
 import { StationQuery } from "@/lib/server/queryMapObjects/queryStation";
 import { TappableQuery } from "@/lib/server/queryMapObjects/queryTappable";
 import type { FeaturePermissionContext, PermittedPolygon } from "@/lib/services/user/checkPerm";
+import { getServerConfig } from "@/lib/services/config/config.server";
+import { queryKantoMapObject, queryKantoMapObjects } from "@/lib/server/api/kantoApi";
 import { error } from "@sveltejs/kit";
 
 const registry: Partial<Record<MapObjectType, MapObjectQuery<any, any>>> = {
@@ -46,6 +48,9 @@ export async function queryMapObjects<Data extends MapData>(
 	if (filter !== undefined && !filter.enabled) {
 		return { examined: 0, data: [] };
 	}
+	if (getServerConfig().kanto) {
+		return queryKantoMapObjects(type, bounds, limit ?? 10_000) as Promise<MapObjectResponse<Data>>;
+	}
 
 	return getQuery(type).getMultiple(bounds, filter, polygon, since, limit, context);
 }
@@ -56,5 +61,8 @@ export async function querySingleMapObject(
 	thisFetch: typeof fetch = fetch,
 	context?: FeaturePermissionContext
 ) {
+	if (getServerConfig().kanto) {
+		return queryKantoMapObject(type, id, thisFetch);
+	}
 	return getQuery(type).getSingle(id, thisFetch, context);
 }

@@ -300,8 +300,8 @@ export function getContestIcon(focus: ContestFocus | undefined) {
 export function getDefaultPokestopFilter() {
 	return {
 		category: "pokestop",
-		...defaultFilter(),
-		pokestopPlain: { category: "pokestopPlain", ...defaultFilter() },
+		...defaultFilter(true),
+		pokestopPlain: { category: "pokestopPlain", ...defaultFilter(true) },
 		quest: { category: "quest", ...defaultFilter() },
 		invasion: { category: "invasion", ...defaultFilter() },
 		contest: { category: "contest", ...defaultFilter() },

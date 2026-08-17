@@ -10,6 +10,7 @@ import { hasFeatureAnywhere } from "@/lib/services/user/checkPerm";
 import { getUserDetails } from "@/lib/services/user/userDetails.svelte";
 import type { WeatherData } from "@/lib/types/mapObjectData/weather";
 import { Features } from "@/lib/utils/features";
+import { appPath } from "@/lib/utils/appPath";
 import TTLCache from "@isaacs/ttlcache";
 import type { FeatureCollection, Polygon } from "geojson";
 import { s2 } from "s2js";
@@ -98,7 +99,9 @@ export async function updateWeather() {
 		return;
 	}
 
-	const response = await fetch("/api/weather/" + BigInt.asIntN(64, weatherCell).toString());
+	const response = await fetch(
+		appPath("/api/weather/" + BigInt.asIntN(64, weatherCell).toString())
+	);
 
 	if (!response.ok) return;
 

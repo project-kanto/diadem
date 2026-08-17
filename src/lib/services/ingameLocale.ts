@@ -5,6 +5,7 @@ import { RaidLevel } from "@/lib/utils/gymUtils";
 import { formatNumber } from "@/lib/utils/numberFormat";
 import { League } from "@/lib/utils/pokemonUtils";
 import { Character, INVASION_CHARACTER_LEADERS } from "@/lib/utils/pokestopUtils";
+import { appPath } from "@/lib/utils/appPath";
 
 export const prefixes = {
 	pokemon: "poke_",
@@ -25,7 +26,7 @@ let remoteLocales: { [key: string]: { [key: string]: string } } = {};
 export async function loadRemoteLocale(languageTag: string, thisFetch: typeof fetch = fetch) {
 	if (Object.keys(remoteLocales).includes(languageTag)) return;
 
-	const result = await thisFetch("/api/locale/" + languageTag);
+	const result = await thisFetch(appPath("/api/locale/" + languageTag));
 	const data = await result.json();
 	remoteLocales[languageTag] = data;
 }

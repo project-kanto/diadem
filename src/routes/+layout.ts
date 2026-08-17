@@ -3,6 +3,7 @@ import { redirect } from "@sveltejs/kit";
 import { setConfig } from "@/lib/services/config/config";
 import { getMapPath } from "@/lib/utils/getMapPath";
 import { getInstanceUrl, isNative } from "@/lib/native/runtime";
+import { appPath } from "@/lib/utils/appPath";
 import {
 	getDefaultUserSettings,
 	setUserSettings,
@@ -23,7 +24,7 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
 	// show an error if instance isn't reachable
 	let config;
 	try {
-		const configResponse = await fetch("/api/config");
+		const configResponse = await fetch(appPath("/api/config"));
 		if (!configResponse.ok) throw new Error(`config ${configResponse.status}`);
 		config = await configResponse.json();
 	} catch {

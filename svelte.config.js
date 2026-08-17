@@ -10,6 +10,9 @@ const config = {
 
 	kit: {
 		adapter: isNative ? adapterStatic({ fallback: "index.html", strict: false }) : adapterNode(),
+		paths: {
+			base: isNative ? "" : "/map_v2"
+		},
 		alias: {
 			"@": "src"
 		},

@@ -4,10 +4,21 @@
 	import { mMove, mPokemon, mRaid, mTeam } from "$lib/services/ingameLocale";
 	import { type MapData, MapObjectType } from "$lib/mapObjects/mapObjectTypes";
 	import type { GymData, GymDefender } from "$lib/types/mapObjectData/gym";
-	import { getIconGym, getIconPokemon, getIconRaidEgg, getIconTeam } from "$lib/services/uicons.svelte";
+	import {
+		getIconGym,
+		getIconPokemon,
+		getIconRaidEgg,
+		getIconTeam
+	} from "$lib/services/uicons.svelte";
 	import { resize } from "$lib/services/assets";
 	import { timestampToLocalTime } from "$lib/utils/timestampToLocalTime";
-	import { getRaidPokemon, GYM_SLOTS, hasActiveRaid, isFortOutdated, isRaidHatched } from "$lib/utils/gymUtils";
+	import {
+		getRaidPokemon,
+		GYM_SLOTS,
+		hasActiveRaid,
+		isFortOutdated,
+		isRaidHatched
+	} from "$lib/utils/gymUtils";
 	import ImagePopup from "@/components/ui/popups/common/ImagePopup.svelte";
 	import IconValue from "@/components/ui/popups/common/IconValue.svelte";
 	import FortImage from "@/components/ui/popups/common/FortImage.svelte";
@@ -48,6 +59,9 @@
 	import { filterTitle } from "$lib/features/filters/filtersetUtils.svelte";
 	import type { AnyFilterset } from "$lib/features/filters/filtersets";
 	import { getIconBackground } from "$lib/services/uicons.svelte";
+	import { hasFeatureAnywhere } from "$lib/services/user/checkPerm";
+	import { getUserDetails } from "$lib/services/user/userDetails.svelte";
+	import { Features } from "$lib/utils/features";
 
 	export { image, overview, main };
 
@@ -63,7 +77,11 @@
 	}
 
 	function getOccupiedSlots(data: GymData) {
-		return GYM_SLOTS - (data.availble_slots ?? 0);
+		return getTotalSlots(data) - (data.availble_slots ?? 0);
+	}
+
+	function getTotalSlots(data: GymData) {
+		return data.total_slots ?? GYM_SLOTS;
 	}
 
 	function getRaidTitle(data: GymData) {
@@ -98,7 +116,9 @@
 
 	function showMatchingFiltersets() {
 		const filter = getUserSettings().filters.gym;
-		return filter.enabled && filter.raid.enabled && Boolean(filter.raid.filters.find((f) => f.enabled));
+		return (
+			filter.enabled && filter.raid.enabled && Boolean(filter.raid.filters.find((f) => f.enabled))
+		);
 	}
 </script>
 
@@ -154,7 +174,7 @@
 				{/snippet}
 
 				{#snippet extra()}
-					{m.gym_slots({ occupied: getOccupiedSlots(data), total: GYM_SLOTS })}
+					{m.gym_slots({ occupied: getOccupiedSlots(data), total: getTotalSlots(data) })}
 				{/snippet}
 			</BigIconOverview>
 		</OverviewCard>
@@ -179,7 +199,12 @@
 			</IconValue>
 		</BasicMainCard>
 	{:else}
-		<TitledMainSection Icon={RaidIcon} title={m.raid()} disabled={!activeRaid}>
+		<TitledMainSection
+			Icon={RaidIcon}
+			title={m.raid()}
+			disabled={!activeRaid}
+			hidden={!hasFeatureAnywhere(getUserDetails().permissions, Features.RAID)}
+		>
 			<BasicMainCard>
 				{#if !hasRaidData(data)}
 					{m.no_raid_at_gym()}
@@ -251,10 +276,10 @@
 										<div class="grid items-center gap-x-2" style="grid-template-columns: auto 1fr">
 											<b>{timestampToLocalTime(rsvp.timeslot / 1000, { showSeconds: false })}</b>
 											<span class="text-right"
-											>{m.rsvp_entry({
-												going: rsvp.going_count,
-												maybe: rsvp.maybe_count
-											})}</span
+												>{m.rsvp_entry({
+													going: rsvp.going_count,
+													maybe: rsvp.maybe_count
+												})}</span
 											>
 										</div>
 									{/each}
@@ -313,7 +338,7 @@
 						<StatsMainCardEntry
 							Icon={UsersRound}
 							name={m.slots_occupied()}
-							value="{getOccupiedSlots(data)}/{GYM_SLOTS}"
+							value="{getOccupiedSlots(data)}/{getTotalSlots(data)}"
 						/>
 					</div>
 
@@ -332,7 +357,7 @@
 												{#if defender.background}
 													<ImagePopup
 														class="absolute size-12 mask-[radial-gradient(circle,black_35%,transparent_70%)]"
-														src={resize(getIconBackground(defender.background), {width: 64})}
+														src={resize(getIconBackground(defender.background), { width: 64 })}
 														alt={m.background()}
 													/>
 												{/if}
@@ -351,7 +376,8 @@
 																style:height="{defender.motivation_now * 100}%"
 															>
 																<Heart
-																	class="absolute bottom-0 left-0 size-6 fill-rose-400 dark:fill-rose-800 stroke-1" />
+																	class="absolute bottom-0 left-0 size-6 fill-rose-400 dark:fill-rose-800 stroke-1"
+																/>
 															</div>
 														</div>
 														<p>
@@ -360,17 +386,13 @@
 																minDecimals: 0
 															})}
 														</p>
-
 													</div>
 												</div>
 											</div>
 										</div>
 
 										<div class="space-y-1 mt-4">
-											<StatsMainCardEntry
-												Icon={SquareEqual}
-												name={m.cp()}
-											>
+											<StatsMainCardEntry Icon={SquareEqual} name={m.cp()}>
 												{#snippet value()}
 													<p>
 														<span>
@@ -380,7 +402,6 @@
 															/ {defender.cp_when_deployed}
 														</span>
 													</p>
-
 												{/snippet}
 											</StatsMainCardEntry>
 											<StatsMainCardEntry
@@ -393,11 +414,7 @@
 												name={m.lost()}
 												value={defender.battles_lost}
 											/>
-											<StatsMainCardEntry
-												Icon={Candy}
-												name={m.fed()}
-												value={defender.times_fed}
-											/>
+											<StatsMainCardEntry Icon={Candy} name={m.fed()} value={defender.times_fed} />
 											<StatsMainCardEntry Icon={Clock} name={m.defender_placed()}>
 												{#snippet value()}
 													{#if defender.deployed_time < currentTimestamp() - 60 * 60 * 24}
@@ -407,8 +424,7 @@
 															showSeconds: false
 														})}
 													{:else}
-														<Countdown
-															expireTime={defender.deployed_time} />
+														<Countdown expireTime={defender.deployed_time} />
 													{/if}
 												{/snippet}
 											</StatsMainCardEntry>

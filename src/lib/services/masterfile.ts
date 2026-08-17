@@ -1,7 +1,9 @@
 import { getPokemonStats } from "@/lib/features/masterStats.svelte";
 import type { MasterFile, MasterPokemon, MasterWeather } from "@/lib/types/masterfile";
 
-const url = "/api/pogodata";
+import { appPath } from "@/lib/utils/appPath";
+
+const url = appPath("/api/pogodata");
 let masterFile: MasterFile;
 
 export async function loadMasterFile() {

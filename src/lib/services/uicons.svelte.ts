@@ -16,6 +16,7 @@ import { getLeagueCp, LeagueCp, type League } from "@/lib/utils/pokemonUtils";
 import { RewardType } from "@/lib/utils/pokestopUtils";
 import { isMaxBattleActive } from "@/lib/utils/stationUtils";
 import type { AnyFilter } from "$lib/features/filters/filters";
+import { appPath } from "@/lib/utils/appPath";
 
 export const DEFAULT_UICONS = "DEFAULT";
 
@@ -54,7 +55,9 @@ export async function initIconSet(id: string, url: string, thisFetch: typeof fet
 export async function initAllIconSets(thisFetch: typeof fetch = fetch) {
 	const base = getInstanceUrl();
 	await Promise.all(
-		getConfig().uiconSets.map((s) => initIconSet(s.id, `${base}/assets/${s.id}/`, thisFetch))
+		getConfig().uiconSets.map((s) =>
+			initIconSet(s.id, `${base}${appPath(`/assets/${s.id}/`)}`, thisFetch)
+		)
 	);
 }
 
@@ -268,7 +271,7 @@ export function getIconTeam(teamId: number) {
 
 export function getIconBackground(backgroundId: number) {
 	const url = iconSets[DEFAULT_UICONS].background(backgroundId);
-	if (url.endsWith("/0.png")) return "/loader.svg";
+	if (url.endsWith("/0.png")) return appPath("/loader.svg");
 	return url;
 }
 

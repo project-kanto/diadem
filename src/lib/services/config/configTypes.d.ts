@@ -137,6 +137,9 @@ export type ClientConfig = {
 };
 
 export type ServerConfig = {
+	kanto?: {
+		url: string;
+	};
 	golbat: {
 		url: string;
 		auth?: string;

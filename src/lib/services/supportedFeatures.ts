@@ -1,3 +1,5 @@
+import { appPath } from "@/lib/utils/appPath";
+
 export type optionalFeatures =
 	| "koji"
 	| "geocoding"
@@ -24,7 +26,7 @@ export function isSupportedFeature(feature: optionalFeatures) {
 }
 
 export async function updateSupportedFeatures() {
-	const resp = await fetch("/api/supported-features");
+	const resp = await fetch(appPath("/api/supported-features"));
 	const data: SupportedFeatures = await resp.json();
 
 	if (!Object.keys(data).includes("koji")) return;

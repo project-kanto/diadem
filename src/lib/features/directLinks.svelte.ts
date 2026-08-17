@@ -8,6 +8,7 @@ import { openToast } from "@/lib/ui/toasts.svelte";
 import { mAny } from "@/lib/utils/anyMessage";
 import { Coords } from "@/lib/utils/coordinates";
 import { type KojiFeature } from "@/lib/features/koji";
+import { appPath } from "@/lib/utils/appPath";
 
 export type DirectLinkData =
 	| MapData
@@ -51,7 +52,7 @@ export function openMapObject(data: MapData, alwaysFly: boolean = false) {
 }
 
 export async function openMapObjectFromId(type: MapObjectType, id: string) {
-	const response = await fetch("/api/" + type + "/" + id);
+	const response = await fetch(appPath("/api/" + type + "/" + id));
 	if (!response.ok) {
 		openToast(
 			m.direct_link_not_found({

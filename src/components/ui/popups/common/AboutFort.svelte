@@ -10,6 +10,9 @@
 	import UpdatedTimes from "@/components/ui/popups/common/UpdatedTimes.svelte";
 	import { ArrowRight, BadgeEuro, Info } from "@lucide/svelte";
 	import { tick } from "svelte";
+	import { hasFeatureAnywhere } from "@/lib/services/user/checkPerm";
+	import { getUserDetails } from "@/lib/services/user/userDetails.svelte";
+	import { Features } from "@/lib/utils/features";
 
 	let {
 		title,
@@ -133,10 +136,12 @@
 			</div>
 		{/if}
 
-		<Button class="mt-3 mb-2 w-full" variant="link" onclick={openWayfarerMap}>
-			{m.go_to_wayfarer_map()}
-			<ArrowRight class="size-3.5" />
-		</Button>
+		{#if hasFeatureAnywhere(getUserDetails().permissions, Features.WAYFARER_MAP)}
+			<Button class="mt-3 mb-2 w-full" variant="link" onclick={openWayfarerMap}>
+				{m.go_to_wayfarer_map()}
+				<ArrowRight class="size-3.5" />
+			</Button>
+		{/if}
 	</BasicMainCard>
 
 	<StatsMainCard class="mt-4">

@@ -1,11 +1,12 @@
 import { type MapData, MapObjectType } from "@/lib/mapObjects/mapObjectTypes";
+import { appPath } from "@/lib/utils/appPath";
 
 export async function getOneMapObject(
 	type: MapObjectType,
 	id: string,
 	thisFetch?: typeof fetch
 ): Promise<MapData | undefined> {
-	const response = await (thisFetch ?? fetch)("/api/" + type + "/" + id);
+	const response = await (thisFetch ?? fetch)(appPath("/api/" + type + "/" + id));
 	const data = await response.json();
 
 	if (!data) return;

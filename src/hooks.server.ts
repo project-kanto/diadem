@@ -21,6 +21,7 @@ import { getServerLogger } from "@/lib/server/logging";
 import { getClientConfig } from "@/lib/services/config/config.server";
 import { setConfig } from "@/lib/services/config/config";
 import { getDisallowedPaths } from "@/lib/utils/disallowedPaths";
+import { appPath } from "@/lib/utils/appPath";
 
 process.title = "Diadem";
 
@@ -50,8 +51,10 @@ const permissionCache: TTLCache<string, Perms> = new TTLCache({
 const authLog = getServerLogger("auth");
 const permissionUpdateInFlight = new Map<string, Promise<Perms>>();
 
-const publicRoutePrefixes = ["/api/locale/", "/assets/"];
-const publicRoutes = new Set(["/api/config", "/api/pogodata", "/api/koji", "/api/stats"]);
+const publicRoutePrefixes = [appPath("/api/locale/"), appPath("/assets/")];
+const publicRoutes = new Set(
+	["/api/config", "/api/pogodata", "/api/koji", "/api/stats"].map(appPath)
+);
 
 function isPublicRoute(pathname: string) {
 	return (

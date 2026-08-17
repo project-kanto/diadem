@@ -35,6 +35,6 @@ jobs:
           context: .
           target: runtime
           push: true
-          tags: ghcr.io/ccev/diadem:latest
+          tags: ghcr.io/project-kanto/diadem:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

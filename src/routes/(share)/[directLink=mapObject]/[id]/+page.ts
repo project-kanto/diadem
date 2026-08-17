@@ -2,6 +2,7 @@ import { browser } from "$app/environment";
 import { setDirectLinkObject } from "@/lib/features/directLinks.svelte.js";
 import type { MapData } from "@/lib/mapObjects/mapObjectTypes";
 import type { PageLoad } from "./$types";
+import { appPath } from "@/lib/utils/appPath";
 
 export const load: PageLoad = async ({ data, fetch }) => {
 	if (browser) {
@@ -9,7 +10,7 @@ export const load: PageLoad = async ({ data, fetch }) => {
 			setDirectLinkObject({ type: data.type });
 		} else {
 			try {
-				const response = await fetch(`/api/${data.type}/${data.id}`);
+				const response = await fetch(appPath(`/api/${data.type}/${data.id}`));
 				if (response.ok) {
 					const mapData: MapData = await response.json();
 					setDirectLinkObject(mapData);
