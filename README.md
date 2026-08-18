@@ -5,7 +5,7 @@
 This public fork powers Kanto's experimental 2016-era map. It reads Kanto's existing
 read-only map API instead of a Golbat scanner database. The upstream project and its
 documentation remain available at [ccev/diadem](https://github.com/ccev/diadem).
-The web build is mounted at `/map_v2`; native builds retain the upstream root path.
+The web build is mounted at `/map`; native builds retain the upstream root path.
 
 - [Docs](https://diadem.malt.ee) for feature overview and setup instructions
 - [Demo](https://demap.co/map) to check it out right now
