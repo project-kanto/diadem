@@ -3,7 +3,7 @@ level = "info" # crit, error, warning, info, debug
 # file = "/var/log/diadem.log"
 
 [server.kanto]
-url = "https://dev.kanto.ac/map/"
+url = "https://dev.kanto.ac/map-api/"
 
 [server.golbat]
 url = "http://127.0.0.1:9001"
@@ -86,7 +86,7 @@ serverId = "1359028304128245934"
 # Everyone can see the Kanto 2016 map objects implemented by this prototype.
 [[server.permissions]]
 everyone = true
-features = ["pokemon", "pokestop", "gym"]
+features = ["pokemon", "pokemon_iv", "pokestop", "gym"]
 
 # Every user gets access to gyms (incl. raids) and pokestops (incl quests, lures, etc) in New York
 #[[server.permissions]]

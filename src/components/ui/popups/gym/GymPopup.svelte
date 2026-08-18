@@ -340,6 +340,9 @@
 							name={m.slots_occupied()}
 							value="{getOccupiedSlots(data)}/{getTotalSlots(data)}"
 						/>
+						{#if data.total_cp != null}
+							<StatsMainCardEntry Icon={Star} name="Prestige" value={data.total_cp.toLocaleString()} />
+						{/if}
 					</div>
 
 					{#if data.defenders?.length}

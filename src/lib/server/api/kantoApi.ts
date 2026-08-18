@@ -16,6 +16,9 @@ type KantoFeature = {
 	team?: string;
 	prestige?: number;
 	pokemon_id?: number;
+	attack_iv?: number;
+	defense_iv?: number;
+	stamina_iv?: number;
 	expires_at?: string;
 	capacity?: number;
 	defenders?: KantoDefender[];
@@ -45,9 +48,17 @@ function mapKantoFeature(feature: KantoFeature, updated: number): MapData {
 		lon: feature.longitude
 	};
 	if (type === MapObjectType.POKEMON) {
+		const attack = feature.attack_iv;
+		const defense = feature.defense_iv;
+		const stamina = feature.stamina_iv;
+		const hasIVs = attack != null && defense != null && stamina != null;
 		return {
 			...common,
 			pokemon_id: feature.pokemon_id ?? 0,
+			atk_iv: attack,
+			def_iv: defense,
+			sta_iv: stamina,
+			iv: hasIVs ? ((attack + defense + stamina) / 45) * 100 : undefined,
 			form: 0,
 			expire_timestamp: feature.expires_at
 				? Math.floor(Date.parse(feature.expires_at) / 1000)
