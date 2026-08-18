@@ -21,6 +21,9 @@ describe("queryKantoMapObjects", () => {
 								latitude: 52.5,
 								longitude: -0.7,
 								pokemon_id: 25,
+								attack_iv: 15,
+								defense_iv: 14,
+								stamina_iv: 13,
 								expires_at: "2026-08-17T20:05:00Z"
 							},
 							{
@@ -48,6 +51,10 @@ describe("queryKantoMapObjects", () => {
 				id: "spawn-1",
 				mapId: "pokemon-spawn-1",
 				pokemon_id: 25,
+				atk_iv: 15,
+				def_iv: 14,
+				sta_iv: 13,
+				iv: (42 / 45) * 100,
 				expire_timestamp: 1786997100,
 				expire_timestamp_verified: true,
 				first_seen_timestamp: 1786996800,
@@ -70,6 +77,7 @@ describe("queryKantoMapObjects", () => {
 								latitude: 52.51,
 								longitude: -0.71,
 								capacity: 3,
+								prestige: 4_000,
 								defenders: [{ pokemon_id: 25, cp: 500, deployed_at: "2026-08-17T19:00:00Z" }]
 							}
 						]
@@ -88,6 +96,7 @@ describe("queryKantoMapObjects", () => {
 			expect.objectContaining({
 				total_slots: 3,
 				availble_slots: 2,
+				total_cp: 4_000,
 				defenders: [expect.objectContaining({ pokemon_id: 25, cp_now: 500 })]
 			})
 		);
