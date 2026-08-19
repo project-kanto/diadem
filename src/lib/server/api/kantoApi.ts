@@ -24,19 +24,32 @@ type KantoFeature = {
 	defenders?: KantoDefender[];
 };
 
-type KantoDefender = {
-	pokemon_id: number;
-	cp: number;
-	deployed_at: string;
-};
-
 type KantoResponse = {
 	features: KantoFeature[];
 	truncated: boolean;
 	updated_at: string;
 };
 
+type KantoDefender = {
+	pokemon_id: number;
+	cp: number;
+	deployed_at: string;
+};
+
 const teamIds: Record<string, number> = { neutral: 0, mystic: 1, valor: 2, instinct: 3 };
+
+function kantoURL(base: string, path: string, bounds?: Bounds): URL {
+	const url = new URL(path, base.endsWith("/") ? base : base + "/");
+	if (bounds) {
+		url.search = new URLSearchParams({
+			south: String(bounds.minLat),
+			west: String(bounds.minLon),
+			north: String(bounds.maxLat),
+			east: String(bounds.maxLon)
+		}).toString();
+	}
+	return url;
+}
 
 function mapKantoFeature(feature: KantoFeature, updated: number): MapData {
 	const type = feature.kind as MapObjectType;
@@ -123,18 +136,20 @@ export async function queryKantoMapObjects(
 	const base = getServerConfig().kanto?.url;
 	if (!base) error(500, "Kanto API is not configured");
 
-	const url = new URL("api/map/v1/features", base.endsWith("/") ? base : base + "/");
-	url.search = new URLSearchParams({
-		south: String(bounds.minLat),
-		west: String(bounds.minLon),
-		north: String(bounds.maxLat),
-		east: String(bounds.maxLon)
-	}).toString();
-
-	const response = await thisFetch(url);
+	const response = await thisFetch(kantoURL(base, "api/map/v1/features", bounds));
 	if (!response.ok) error(response.status, `Kanto API returned ${response.status}`);
 
 	const source = (await response.json()) as KantoResponse;
+	if (type === MapObjectType.POKEMON) {
+		const lureResponse = await thisFetch(kantoURL(base, "api/map/v1/lure-spawns", bounds), {
+			cache: "no-store"
+		});
+		if (!lureResponse.ok)
+			error(lureResponse.status, `Kanto lure API returned ${lureResponse.status}`);
+		const lures = (await lureResponse.json()) as KantoResponse;
+		const known = new Set(source.features.map(({ id }) => id));
+		source.features.push(...lures.features.filter(({ id }) => !known.has(id)));
+	}
 	const updated = Math.floor(Date.parse(source.updated_at) / 1000);
 	const features = source.features
 		.filter((feature) => feature.kind === type)
@@ -142,6 +157,18 @@ export async function queryKantoMapObjects(
 		.map((feature) => mapKantoFeature(feature, updated));
 
 	return { data: features, examined: features.length };
+}
+
+export async function proxyKantoLureSpawns(
+	requestURL: URL,
+	thisFetch: typeof fetch = fetch
+): Promise<Response> {
+	const base = getServerConfig().kanto?.url;
+	if (!base) error(500, "Kanto API is not configured");
+
+	const url = kantoURL(base, "api/map/v1/lure-spawns");
+	url.search = requestURL.search;
+	return thisFetch(url, { cache: "no-store" });
 }
 
 export async function queryKantoMapObject(

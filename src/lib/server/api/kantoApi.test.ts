@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { MapObjectType } from "@/lib/mapObjects/mapObjectTypes";
-import { queryKantoMapObject, queryKantoMapObjects } from "./kantoApi";
+import { proxyKantoLureSpawns, queryKantoMapObject, queryKantoMapObjects } from "./kantoApi";
 
 vi.mock("@/lib/services/config/config.server", () => ({
 	getServerConfig: () => ({ kanto: { url: "https://dev.kanto.ac/map/" } })
@@ -8,36 +8,53 @@ vi.mock("@/lib/services/config/config.server", () => ({
 
 describe("queryKantoMapObjects", () => {
 	it("maps Kanto features into Diadem objects", async () => {
-		const mockFetch = vi.fn(
-			async () =>
-				new Response(
+		const mockFetch = vi.fn(async (url: URL | RequestInfo) => {
+			if (String(url).includes("lure-spawns")) {
+				return new Response(
 					JSON.stringify({
-						updated_at: "2026-08-17T20:00:00Z",
+						updated_at: "2026-08-17T20:00:01Z",
 						truncated: false,
 						features: [
 							{
-								id: "spawn-1",
+								id: "lure-1",
 								kind: "pokemon",
-								latitude: 52.5,
-								longitude: -0.7,
-								pokemon_id: 25,
-								attack_iv: 15,
-								defense_iv: 14,
-								stamina_iv: 13,
-								expires_at: "2026-08-17T20:05:00Z"
-							},
-							{
-								id: "gym-1",
-								kind: "gym",
 								latitude: 52.51,
 								longitude: -0.71,
-								capacity: 3,
-								defenders: [{ pokemon_id: 25, cp: 500, deployed_at: "2026-08-17T19:00:00Z" }]
+								pokemon_id: 133,
+								expires_at: "2026-08-17T20:04:00Z"
 							}
 						]
 					})
-				)
-		) as unknown as typeof fetch;
+				);
+			}
+			return new Response(
+				JSON.stringify({
+					updated_at: "2026-08-17T20:00:00Z",
+					truncated: false,
+					features: [
+						{
+							id: "spawn-1",
+							kind: "pokemon",
+							latitude: 52.5,
+							longitude: -0.7,
+							pokemon_id: 25,
+							attack_iv: 15,
+							defense_iv: 14,
+							stamina_iv: 13,
+							expires_at: "2026-08-17T20:05:00Z"
+						},
+						{
+							id: "gym-1",
+							kind: "gym",
+							latitude: 52.51,
+							longitude: -0.71,
+							capacity: 3,
+							defenders: [{ pokemon_id: 25, cp: 500, deployed_at: "2026-08-17T19:00:00Z" }]
+						}
+					]
+				})
+			);
+		}) as unknown as typeof fetch;
 
 		const result = await queryKantoMapObjects(
 			MapObjectType.POKEMON,
@@ -59,8 +76,32 @@ describe("queryKantoMapObjects", () => {
 				expire_timestamp_verified: true,
 				first_seen_timestamp: 1786996800,
 				changed: 1786996800
-			})
+			}),
+			expect.objectContaining({ id: "lure-1", pokemon_id: 133 })
 		]);
+		expect(mockFetch).toHaveBeenCalledTimes(2);
+	});
+
+	it("proxies the legacy laboratory lure URL through the configured Kanto API", async () => {
+		const mockFetch = vi.fn(
+			async () =>
+				new Response('{"features":[]}', {
+					status: 200,
+					headers: { "cache-control": "no-store", "content-type": "application/json" }
+				})
+		) as unknown as typeof fetch;
+
+		const response = await proxyKantoLureSpawns(
+			new URL("https://dev.kanto.ac/map/api/map/v1/lure-spawns?south=49&west=-9&north=61&east=3"),
+			mockFetch
+		);
+
+		expect(mockFetch).toHaveBeenCalledWith(
+			new URL("https://dev.kanto.ac/map/api/map/v1/lure-spawns?south=49&west=-9&north=61&east=3"),
+			{ cache: "no-store" }
+		);
+		expect(response.status).toBe(200);
+		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
 	it("maps Kanto gym capacity and anonymous defenders", async () => {
