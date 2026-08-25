@@ -668,5 +668,8 @@
 	"with_background": "With Background",
 	"map_limit_title": "Limit reached",
 	"map_limit_zoom_hint": "Zoom in to see more {objects}",
-	"pogo_data": "data"
+	"pogo_data": "data",
+	"pokemon_picker_count": "{count} selected",
+	"pokemon_height": "Height",
+	"pokemon_weight": "Weight"
 }

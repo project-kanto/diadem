@@ -7,14 +7,28 @@ import type {
 } from "@/lib/features/filters/filtersets";
 import { getPremadeInvasionFiltersets } from "@/lib/features/filters/filterUtilsInvasion";
 import { getPremadeQuestFiltersets } from "@/lib/features/filters/filterUtilsQuest";
-import { IconCategory, IconFeature } from "@/lib/features/filters/icons";
+import { IconCategory } from "@/lib/features/filters/icons";
 import { MODIFIER_COLORS } from "@/lib/features/filters/modifierPresets";
 import { RaidLevel } from "@/lib/utils/gymUtils";
-import { League } from "@/lib/utils/pokemonUtils";
 import { getId } from "@/lib/utils/uuid";
 
 export const premadeFiltersets: { [key in FilterCategory]?: AnyFilterset[] } = {
 	pokemon: [
+		filterset<FiltersetPokemon>({
+			emoji: "🌿",
+			title: "rarity_common",
+			rarity: ["common"]
+		}),
+		filterset<FiltersetPokemon>({
+			emoji: "✨",
+			title: "rarity_uncommon",
+			rarity: ["uncommon"]
+		}),
+		filterset<FiltersetPokemon>({
+			emoji: "💎",
+			title: "rarity_rare",
+			rarity: ["rare", "ultra rare"]
+		}),
 		filterset<FiltersetPokemon>({
 			emoji: "💯",
 			title: "filter_template_hundo",
@@ -26,74 +40,12 @@ export const premadeFiltersets: { [key in FilterCategory]?: AnyFilterset[] } = {
 			}
 		}),
 		filterset<FiltersetPokemon>({
-			uicon: {
-				category: IconCategory.FEATURES,
-				params: {
-					feature: IconFeature.LEAGUE,
-					league: League.GREAT
-				}
-			},
-			title: "filter_template_rank1_great",
-			pvpRankGreat: { min: 1, max: 1 },
-			modifiers: {
-				glow: {
-					color: MODIFIER_COLORS.blue
-				},
-				showBadge: true
-			}
-		}),
-		filterset<FiltersetPokemon>({
-			uicon: {
-				category: IconCategory.FEATURES,
-				params: {
-					feature: IconFeature.LEAGUE,
-					league: League.ULTRA
-				}
-			},
-			title: "filter_template_rank1_ultra",
-			pvpRankUltra: { min: 1, max: 1 },
-			modifiers: {
-				glow: {
-					color: MODIFIER_COLORS.yellow
-				},
-				showBadge: true
-			}
-		}),
-		filterset<FiltersetPokemon>({
 			emoji: "🗑️",
 			title: "filter_template_nundo",
 			iv: { min: 0, max: 0 },
 			modifiers: {
 				rotation: 180
 			}
-		}),
-		filterset<FiltersetPokemon>({
-			emoji: "📏",
-			title: "filter_template_xxl",
-			size: { min: 5, max: 5 }
-		}),
-		filterset<FiltersetPokemon>({
-			uicon: {
-				category: IconCategory.POKEMON,
-				params: { pokemon_id: 201, form: 6 }
-			},
-			title: "filter_template_unown",
-			pokemon: Array.from({ length: 28 }, (_, i) => i + 1).map((i) => ({
-				pokemon_id: 201,
-				form: i
-			}))
-		}),
-		filterset<FiltersetPokemon>({
-			uicon: {
-				category: IconCategory.POKEMON,
-				params: { pokemon_id: 480, form: 0 }
-			},
-			title: "filter_template_sea_trio",
-			pokemon: [
-				{ pokemon_id: 480, form: 0 },
-				{ pokemon_id: 481, form: 0 },
-				{ pokemon_id: 482, form: 0 }
-			]
 		})
 	],
 	raid: [

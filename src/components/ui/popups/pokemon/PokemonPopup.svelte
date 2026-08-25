@@ -64,8 +64,8 @@
 	import FiltersetIcon from "$lib/features/filters/FiltersetIcon.svelte";
 	import PokemonStatsCard from "@/components/ui/popups/common/PokemonStatsCard.svelte";
 	import BigCountdown from "@/components/ui/popups/common/BigCountdown.svelte";
-	import { mLeague } from "$lib/services/ingameLocale.ts";
-	import { getIconLeague } from "$lib/services/uicons.svelte.ts";
+	import { mLeague } from "$lib/services/ingameLocale";
+	import { getIconLeague } from "$lib/services/uicons.svelte";
 
 	export { image, overview, main };
 
@@ -226,7 +226,6 @@
 	{@const data = d as PokemonData}
 	{@const stats: PokemonStats | undefined = getMasterPokemonStats(data.pokemon_id, data.form ?? 0)}
 	{@const statsEntry = stats?.entry}
-	{@const WeatherIcon = getWeatherIcon(data.weather)}
 	{@const pvpNotice = getPvpNotice(data)}
 
 	<BigCountdown
@@ -352,7 +351,7 @@
 		{/if}
 	</div>
 
-	{#if data.iv != null || data.cp != null || data.level != null}
+	{#if data.iv != null || data.cp != null || data.level != null || data.weather != null || data.encounter_weather != null}
 		<TitledMainSection Icon={SquareChartGantt} title={m.values()}>
 			<StatsMainCard>
 				{#if data.iv != null}
@@ -390,18 +389,18 @@
 				{#if data.level}
 					<StatsMainCardEntry name={m.level()} value={data.level} />
 				{/if}
-				<StatsMainCardEntry name={m.weather_boost()}>
-					{#snippet value()}
-						{#if data.weather}
+				{#if data.weather != null || data.encounter_weather != null}
+					{@const weather = data.weather ?? data.encounter_weather}
+					{@const WeatherIcon = getWeatherIcon(weather)}
+					<StatsMainCardEntry name={m.weather_boost()}>
+						{#snippet value()}
 							<div class="flex items-center gap-1.5">
 								<WeatherIcon class="size-4" />
-								{mWeather(data.weather)}
+								{mWeather(weather)}
 							</div>
-						{:else}
-							{m.modifier_none()}
-						{/if}
-					{/snippet}
-				</StatsMainCardEntry>
+						{/snippet}
+					</StatsMainCardEntry>
+				{/if}
 			</StatsMainCard>
 		</TitledMainSection>
 	{/if}
@@ -545,12 +544,12 @@
 
 	<TitledMainSection Icon={Info} title={m.about_this_pokemon({ name: speciesName(data) })}>
 		<StatsMainCard>
-			<StatsMainCardEntry
-				Icon={data.gender === 1 ? Mars : data.gender === 2 ? Venus : CircleSmall}
-				name={m.pokemon_gender()}
-			>
-				{#snippet value()}
-					{#if data.gender != null}
+			{#if data.gender != null}
+				<StatsMainCardEntry
+					Icon={data.gender === 1 ? Mars : data.gender === 2 ? Venus : CircleSmall}
+					name={m.pokemon_gender()}
+				>
+					{#snippet value()}
 						{#if data.gender === 1}
 							{m.pokemon_gender_male()}
 						{:else if data.gender === 2}
@@ -558,31 +557,46 @@
 						{:else}
 							{m.pokemon_gender_neutral()}
 						{/if}
-					{:else}
-						<span class="text-muted-foreground">
-							{m.unknown()}
-						</span>
-					{/if}
-				{/snippet}
-			</StatsMainCardEntry>
-			<StatsMainCardEntry
-				Icon={Ruler}
-				name={m.pokemon_size()}
-				value={data.size != null ? getPokemonSize(data.size) : m.unknown()}
-			/>
-			<StatsMainCardEntry Icon={Swords} name={m.popup_pokemon_moves()}>
-				{#snippet value()}
-					<p class="flex gap-2">
-						{#if data.move_1 && data.move_2}
-							<span>{mMove(data.move_1)}</span>
-							<span>·</span>
-							<span>{mMove(data.move_2)}</span>
-						{:else}
-							{m.unknown()}
-						{/if}
-					</p>
-				{/snippet}
-			</StatsMainCardEntry>
+					{/snippet}
+				</StatsMainCardEntry>
+			{/if}
+			{#if data.size != null}
+				<StatsMainCardEntry
+					Icon={Ruler}
+					name={m.pokemon_size()}
+					value={getPokemonSize(data.size)}
+				/>
+			{/if}
+			{#if data.height != null}
+				<StatsMainCardEntry
+					Icon={Ruler}
+					name={m.pokemon_height()}
+					value={`${formatNumber(data.height, { maximumFractionDigits: 2 })} m`}
+				/>
+			{/if}
+			{#if data.weight != null}
+				<StatsMainCardEntry
+					name={m.pokemon_weight()}
+					value={`${formatNumber(data.weight, { maximumFractionDigits: 2 })} kg`}
+				/>
+			{/if}
+			{#if data.move_1 || data.move_2}
+				<StatsMainCardEntry Icon={Swords} name={m.popup_pokemon_moves()}>
+					{#snippet value()}
+						<p class="flex gap-2">
+							{#if data.move_1}
+								<span>{mMove(data.move_1)}</span>
+							{/if}
+							{#if data.move_1 && data.move_2}
+								<span>·</span>
+							{/if}
+							{#if data.move_2}
+								<span>{mMove(data.move_2)}</span>
+							{/if}
+						</p>
+					{/snippet}
+				</StatsMainCardEntry>
+			{/if}
 
 			<UpdatedTimes
 				firstSeen={data.first_seen_timestamp}

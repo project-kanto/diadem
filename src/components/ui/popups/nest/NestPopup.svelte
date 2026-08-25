@@ -46,9 +46,16 @@
 		<OverviewCard Icon={Trees} title={m.park_name()} value={data.name} />
 	{/if}
 
-	<OverviewCard Icon={RotateCcw} title={m.nest_avg()}
-	              value={m.nest_avg_value({ avg: formatDecimal(data.pokemon_avg) })} />
-	<OverviewCard Icon={MapPinned} title={m.spawnpoints()} value={formatNumber(data.spawnpoints)} />
+	{#if data.pokemon_avg != null}
+		<OverviewCard
+			Icon={RotateCcw}
+			title={m.nest_avg()}
+			value={m.nest_avg_value({ avg: formatDecimal(data.pokemon_avg) })}
+		/>
+	{/if}
+	{#if data.spawnpoints != null}
+		<OverviewCard Icon={MapPinned} title={m.spawnpoints()} value={formatNumber(data.spawnpoints)} />
+	{/if}
 {/snippet}
 
 {#snippet main(d: MapData)}
@@ -59,31 +66,37 @@
 		title={m.about_this_nest()}
 	>
 		<StatsMainCard>
-			<StatsMainCardEntry
-				Icon={Trees}
-				name={m.park_name()}
-				value={data.name ? data.name : m.unknown()}
-			/>
-			<StatsMainCardEntry
-				Icon={RotateCcw}
-				name={m.nest_avg()}
-				value={m.nest_avg_value({ avg: formatDecimal(data.pokemon_avg) })}
-			/>
-			<StatsMainCardEntry
-				Icon={MapPinned}
-				name={m.nest_spawnpoint_count()}
-				value={formatNumber(data.spawnpoints)}
-			/>
-			<StatsMainCardEntry
-				Icon={CircleSlash2}
-				name={m.nest_ratio()}
-				value={formatPercentage((data.pokemon_ratio ?? 0) / 100)}
-			/>
-			<StatsMainCardEntry
-				Icon={VectorSquare}
-				name={m.nest_size()}
-				value={m.square_m_value({ size: formatNumber(data.m2, { maximumFractionDigits: 0 }) })}
-			/>
+			{#if data.name}
+				<StatsMainCardEntry Icon={Trees} name={m.park_name()} value={data.name} />
+			{/if}
+			{#if data.pokemon_avg != null}
+				<StatsMainCardEntry
+					Icon={RotateCcw}
+					name={m.nest_avg()}
+					value={m.nest_avg_value({ avg: formatDecimal(data.pokemon_avg) })}
+				/>
+			{/if}
+			{#if data.spawnpoints != null}
+				<StatsMainCardEntry
+					Icon={MapPinned}
+					name={m.nest_spawnpoint_count()}
+					value={formatNumber(data.spawnpoints)}
+				/>
+			{/if}
+			{#if data.pokemon_ratio != null}
+				<StatsMainCardEntry
+					Icon={CircleSlash2}
+					name={m.nest_ratio()}
+					value={formatPercentage(data.pokemon_ratio / 100)}
+				/>
+			{/if}
+			{#if data.m2 != null}
+				<StatsMainCardEntry
+					Icon={VectorSquare}
+					name={m.nest_size()}
+					value={m.square_m_value({ size: formatNumber(data.m2, { maximumFractionDigits: 0 }) })}
+				/>
+			{/if}
 			<UpdatedTimes
 				updated={data.updated ?? undefined}
 			/>
@@ -97,11 +110,13 @@
 
 	<PokemonStatsCard data={{ pokemon_id: data.pokemon_id ?? 0, form: data.form ?? 0 }} />
 
-	<TitledMainSection Icon={CircleDot} title={m.access_this_nest()}>
-		<AccessPolygonMap
-			polygon={data.polygon}
-			fillColor="rgba(152, 248, 163, 0.4)"
-			strokeColor="rgba(152, 248, 163, 0.8)"
-		/>
-	</TitledMainSection>
+	{#if data.polygon}
+		<TitledMainSection Icon={CircleDot} title={m.access_this_nest()}>
+			<AccessPolygonMap
+				polygon={data.polygon}
+				fillColor="rgba(152, 248, 163, 0.4)"
+				strokeColor="rgba(152, 248, 163, 0.8)"
+			/>
+		</TitledMainSection>
+	{/if}
 {/snippet}

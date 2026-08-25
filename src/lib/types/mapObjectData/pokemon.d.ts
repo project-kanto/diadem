@@ -19,6 +19,8 @@ export type MinPokemon = {
 	form: number;
 };
 
+export type PokemonRarity = "common" | "uncommon" | "rare" | "ultra rare";
+
 export type PokemonVisual = {
 	pokemon_id: number;
 	form: number;
@@ -73,4 +75,5 @@ export type PokemonData = {
 	};
 	is_event?: number;
 	strong?: number;
+	rarity?: PokemonRarity;
 } & PokemonVisual;

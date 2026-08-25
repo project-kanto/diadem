@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { mPokemon } from "@/lib/services/ingameLocale";
+	import * as m from "@/lib/paraglide/messages";
 	import { resize } from "@/lib/services/assets";
 	import { getIconPokemon } from "@/lib/services/uicons.svelte.js";
 	import type { PokemonVisual } from "@/lib/types/mapObjectData/pokemon";
-	import { filterColors } from "@/lib/features/filters/colors";
 	import { slide } from "svelte/transition";
 	import type { HighlightRanges } from "@nozbe/microfuzz";
 	import { createFuzzySearch, highlightSearchMatches } from "@/lib/services/search.svelte.js";
 	import MultiSelect from "@/components/menus/filters/filterset/multiselect/MultiSelect.svelte";
 	import MultiSelectItem from "@/components/menus/filters/filterset/multiselect/MultiSelectItem.svelte";
+	import { Check } from "@lucide/svelte";
 
 	let {
 		pokemonList,
@@ -63,9 +64,19 @@
 		return map;
 	});
 
-	let sortedList = $derived(
-		[...(fuzzyResults ? fuzzyResults.map((r) => r.item) : pokemonList)].sort(comparePokemonVisual)
-	);
+	let sortedList = $derived.by(() => {
+		const list = [...(fuzzyResults ? fuzzyResults.map((r) => r.item) : pokemonList)];
+		if (!fuzzyResults) {
+			const selectedSet = new Set(selectedValues);
+			list.sort(
+				(a, b) =>
+					Number(selectedSet.has(getKey(b))) - Number(selectedSet.has(getKey(a))) ||
+					comparePokemonVisual(a, b)
+			);
+			return list;
+		}
+		return list.sort(comparePokemonVisual);
+	});
 </script>
 
 {#if sortedList.length > 0}
@@ -74,12 +85,13 @@
 			{title}
 		</h2>
 
-		<MultiSelect>
+		<MultiSelect class="grid-cols-1! text-sm! font-medium!">
 			{#each sortedList as pokemon (getKey(pokemon))}
 				{@const isSelected = selectedValues.includes(getKey(pokemon))}
 
 				<MultiSelectItem
 					{isSelected}
+					class="flex-row! py-2! px-3! gap-3! text-left"
 					onclick={(value) => {
 						onselect(pokemon, value);
 					}}
@@ -90,13 +102,21 @@
 						src={resize(getIconPokemon(pokemon), { width: 64 })}
 						loading="lazy"
 					/>
-					<div class="grow text-center align-middle flex items-center px-1">
+					<div class="grow align-middle flex items-center px-1">
 						<span class="h-fit" {@attach highlightSearchMatches(highlights?.get(getKey(pokemon)))}>
 							{mPokemon(pokemon)}
 						</span>
 					</div>
+					<span
+						class="size-5 shrink-0 rounded border border-current flex items-center justify-center"
+						aria-hidden="true"
+					>
+						{#if isSelected}<Check class="size-4" />{/if}
+					</span>
 				</MultiSelectItem>
 			{/each}
 		</MultiSelect>
 	</div>
+{:else}
+	<p class="py-6 text-center text-sm text-muted-foreground">{m.nothing_found()}</p>
 {/if}

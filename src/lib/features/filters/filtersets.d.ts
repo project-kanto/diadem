@@ -1,6 +1,7 @@
 import type { IconCategory } from "@/lib/features/filters/icons";
 import { m } from "@/lib/paraglide/messages";
 import type { RewardType } from "@/lib/utils/pokestopUtils";
+import type { PokemonRarity } from "@/lib/types/mapObjectData/pokemon";
 
 export type AnyFilterset =
 	| FiltersetPokemon
@@ -68,6 +69,7 @@ type QuestReward = { id: string; amount?: number };
 
 export type FiltersetPokemon = BaseFilterset & {
 	pokemon?: Pokemon[];
+	rarity?: PokemonRarity[];
 	iv?: MinMax;
 	cp?: MinMax;
 	ivAtk?: MinMax;

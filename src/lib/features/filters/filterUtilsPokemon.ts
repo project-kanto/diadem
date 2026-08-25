@@ -1,4 +1,5 @@
 import type { FiltersetPokemon, FiltersetTitle, MinMax } from "@/lib/features/filters/filtersets";
+import type { PokemonRarity } from "@/lib/types/mapObjectData/pokemon";
 import { setFilterIcon } from "@/lib/features/filters/filtersetUtils.svelte";
 import { IconCategory } from "@/lib/features/filters/icons";
 import { makeAttributeRangeLabel } from "@/lib/features/filters/makeAttributeChipLabel";
@@ -69,6 +70,9 @@ export function generatePokemonFilterDetails(filter: FiltersetPokemon) {
 
 	if (filter.iv) {
 		attributes.push(getAttributeLabelIvProduct(filter.iv));
+	}
+	if (filter.rarity) {
+		attributes.push(filter.rarity.map(getPokemonRarityLabel).join(", "));
 	}
 	if (filter.pvpRankLittle) {
 		attributes.push(
@@ -143,6 +147,12 @@ export function generatePokemonFilterDetails(filter: FiltersetPokemon) {
 	) {
 		// nundo icon
 		setFilterIcon(filter, { emoji: "🗑️" });
+	} else if (filter.rarity?.includes("rare") || filter.rarity?.includes("ultra rare")) {
+		setFilterIcon(filter, { emoji: "💎" });
+	} else if (filter.rarity?.includes("uncommon")) {
+		setFilterIcon(filter, { emoji: "✨" });
+	} else if (filter.rarity?.includes("common")) {
+		setFilterIcon(filter, { emoji: "🌿" });
 	} else if (
 		(filter.iv?.min ?? 0) >= 85 ||
 		(filter.ivAtk?.min ?? 0) + (filter.ivDef?.min ?? 0) + (filter.ivSta?.min ?? 0) >= 38
@@ -198,6 +208,15 @@ export function generatePokemonFilterDetails(filter: FiltersetPokemon) {
 	}
 
 	filter.title = title;
+}
+
+export function getPokemonRarityLabel(rarity: PokemonRarity) {
+	return {
+		common: m.rarity_common(),
+		uncommon: m.rarity_uncommon(),
+		rare: m.rarity_rare(),
+		"ultra rare": m.rarity_very_rare()
+	}[rarity];
 }
 
 export function getAttributeLabelIvProduct(iv: MinMax) {

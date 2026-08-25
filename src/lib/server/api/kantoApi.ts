@@ -3,7 +3,8 @@ import { type MapData, MapObjectType } from "@/lib/mapObjects/mapObjectTypes";
 import type { MapObjectResponse } from "@/lib/server/queryMapObjects/MapObjectQuery";
 import { getServerConfig } from "@/lib/services/config/config.server";
 import type { GymData } from "@/lib/types/mapObjectData/gym";
-import type { PokemonData } from "@/lib/types/mapObjectData/pokemon";
+import type { NestData } from "@/lib/types/mapObjectData/nest";
+import type { PokemonData, PokemonRarity } from "@/lib/types/mapObjectData/pokemon";
 import type { PokestopData } from "@/lib/types/mapObjectData/pokestop";
 import { error } from "@sveltejs/kit";
 
@@ -19,10 +20,25 @@ type KantoFeature = {
 	attack_iv?: number;
 	defense_iv?: number;
 	stamina_iv?: number;
+	move_1?: number;
+	move_2?: number;
+	height_m?: number;
+	weight_kg?: number;
+	source?: string;
+	rarity?: PokemonRarity;
+	chance_percent?: number;
+	nest_chance?: number;
+	spawnpoints?: number;
+	geometry?: KantoGeometry;
+	spawned_at?: string;
 	expires_at?: string;
 	capacity?: number;
 	defenders?: KantoDefender[];
 };
+
+type KantoGeometry =
+	| { type: "Polygon"; coordinates: number[][][] }
+	| { type: "MultiPolygon"; coordinates: number[][][][] };
 
 type KantoResponse = {
 	features: KantoFeature[];
@@ -51,6 +67,16 @@ function kantoURL(base: string, path: string, bounds?: Bounds): URL {
 	return url;
 }
 
+function mapKantoGeometry(geometry?: KantoGeometry): NestData["polygon"] {
+	if (!geometry) return;
+	if (geometry.type === "Polygon") {
+		return geometry.coordinates.map((ring) => ring.map(([x, y]) => ({ x, y })));
+	}
+	return geometry.coordinates.map((polygon) =>
+		polygon.map((ring) => ring.map(([x, y]) => ({ x, y })))
+	);
+}
+
 function mapKantoFeature(feature: KantoFeature, updated: number): MapData {
 	const type = feature.kind as MapObjectType;
 	const common = {
@@ -65,6 +91,9 @@ function mapKantoFeature(feature: KantoFeature, updated: number): MapData {
 		const defense = feature.defense_iv;
 		const stamina = feature.stamina_iv;
 		const hasIVs = attack != null && defense != null && stamina != null;
+		const spawned = feature.spawned_at
+			? Math.floor(Date.parse(feature.spawned_at) / 1000)
+			: updated;
 		return {
 			...common,
 			pokemon_id: feature.pokemon_id ?? 0,
@@ -72,15 +101,40 @@ function mapKantoFeature(feature: KantoFeature, updated: number): MapData {
 			def_iv: defense,
 			sta_iv: stamina,
 			iv: hasIVs ? ((attack + defense + stamina) / 45) * 100 : undefined,
+			move_1: feature.move_1,
+			move_2: feature.move_2,
+			height: feature.height_m,
+			weight: feature.weight_kg,
+			rarity: feature.rarity,
+			seen_type: feature.source === "lure" ? "lure_wild" : "wild",
 			form: 0,
 			expire_timestamp: feature.expires_at
 				? Math.floor(Date.parse(feature.expires_at) / 1000)
 				: undefined,
 			expire_timestamp_verified: true,
-			first_seen_timestamp: updated,
-			changed: updated,
-			updated
+			first_seen_timestamp: spawned,
+			changed: spawned,
+			updated: spawned
 		} as PokemonData;
+	}
+	if (type === MapObjectType.NEST) {
+		const chance = feature.nest_chance ?? 0;
+		return {
+			...common,
+			name: feature.name ?? null,
+			area_name: feature.name ?? null,
+			polygon: mapKantoGeometry(feature.geometry),
+			spawnpoints: feature.spawnpoints ?? null,
+			m2: null,
+			active: 1,
+			pokemon_id: feature.pokemon_id ?? null,
+			form: 0,
+			pokemon_avg: feature.spawnpoints != null ? (feature.spawnpoints * chance) / 100 : null,
+			pokemon_ratio: chance || null,
+			pokemon_count: null,
+			discarded: null,
+			updated
+		} as NestData;
 	}
 	if (type === MapObjectType.POKESTOP) {
 		return {
@@ -169,6 +223,18 @@ export async function proxyKantoLureSpawns(
 	const url = kantoURL(base, "api/map/v1/lure-spawns");
 	url.search = requestURL.search;
 	return thisFetch(url, { cache: "no-store" });
+}
+
+export async function queryKantoSpecies(
+	thisFetch: typeof fetch = fetch
+): Promise<{ pokemon_id: number; form: number }[]> {
+	const base = getServerConfig().kanto?.url;
+	if (!base) error(500, "Kanto API is not configured");
+
+	const response = await thisFetch(kantoURL(base, "api/map/v1/species"));
+	if (!response.ok) error(response.status, `Kanto species API returned ${response.status}`);
+	const species = (await response.json()) as { id: number }[];
+	return species.map(({ id }) => ({ pokemon_id: id, form: 0 }));
 }
 
 export async function queryKantoMapObject(
