@@ -1,12 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
 import { MapObjectType } from "@/lib/mapObjects/mapObjectTypes";
-import { proxyKantoLureSpawns, queryKantoMapObject, queryKantoMapObjects } from "./kantoApi";
+import {
+	proxyKantoLureSpawns,
+	queryKantoMapObject,
+	queryKantoMapObjects,
+	queryKantoSpecies
+} from "./kantoApi";
 
 vi.mock("@/lib/services/config/config.server", () => ({
 	getServerConfig: () => ({ kanto: { url: "https://dev.kanto.ac/map/" } })
 }));
 
 describe("queryKantoMapObjects", () => {
+	it("loads Kanto's authoritative spawnable species", async () => {
+		const mockFetch = vi.fn(
+			async () => new Response(JSON.stringify([{ id: 1 }, { id: 25 }]))
+		) as unknown as typeof fetch;
+
+		await expect(queryKantoSpecies(mockFetch)).resolves.toEqual([
+			{ pokemon_id: 1, form: 0 },
+			{ pokemon_id: 25, form: 0 }
+		]);
+		expect(mockFetch).toHaveBeenCalledWith(new URL("https://dev.kanto.ac/map/api/map/v1/species"));
+	});
+
 	it("maps Kanto features into Diadem objects", async () => {
 		const mockFetch = vi.fn(async (url: URL | RequestInfo) => {
 			if (String(url).includes("lure-spawns")) {
@@ -21,6 +38,8 @@ describe("queryKantoMapObjects", () => {
 								latitude: 52.51,
 								longitude: -0.71,
 								pokemon_id: 133,
+								source: "lure",
+								spawned_at: "2026-08-17T19:59:30Z",
 								expires_at: "2026-08-17T20:04:00Z"
 							}
 						]
@@ -41,6 +60,12 @@ describe("queryKantoMapObjects", () => {
 							attack_iv: 15,
 							defense_iv: 14,
 							stamina_iv: 13,
+							move_1: 13,
+							move_2: 14,
+							height_m: 0.42,
+							weight_kg: 6.1,
+							rarity: "rare",
+							spawned_at: "2026-08-17T19:55:00Z",
 							expires_at: "2026-08-17T20:05:00Z"
 						},
 						{
@@ -74,12 +99,79 @@ describe("queryKantoMapObjects", () => {
 				iv: (42 / 45) * 100,
 				expire_timestamp: 1786997100,
 				expire_timestamp_verified: true,
-				first_seen_timestamp: 1786996800,
-				changed: 1786996800
+				move_1: 13,
+				move_2: 14,
+				height: 0.42,
+				weight: 6.1,
+				rarity: "rare",
+				seen_type: "wild",
+				first_seen_timestamp: 1786996500,
+				changed: 1786996500
 			}),
-			expect.objectContaining({ id: "lure-1", pokemon_id: 133 })
+			expect.objectContaining({
+				id: "lure-1",
+				pokemon_id: 133,
+				seen_type: "lure_wild",
+				first_seen_timestamp: 1786996770
+			})
 		]);
 		expect(mockFetch).toHaveBeenCalledTimes(2);
+	});
+
+	it("maps one Kanto nest polygon into a Diadem nest", async () => {
+		const mockFetch = vi.fn(
+			async () =>
+				new Response(
+					JSON.stringify({
+						updated_at: "2026-08-17T20:00:00Z",
+						truncated: false,
+						features: [
+							{
+								id: "nest-1",
+								kind: "nest",
+								latitude: 52.5,
+								longitude: -0.7,
+								pokemon_id: 25,
+								nest_chance: 25,
+								spawnpoints: 4,
+								geometry: {
+									type: "Polygon",
+									coordinates: [
+										[
+											[-0.71, 52.49],
+											[-0.69, 52.49],
+											[-0.71, 52.49]
+										]
+									]
+								}
+							}
+						]
+					})
+				)
+		) as unknown as typeof fetch;
+
+		const result = await queryKantoMapObjects(
+			MapObjectType.NEST,
+			{ minLat: 52.4, minLon: -0.8, maxLat: 52.6, maxLon: -0.6 },
+			100,
+			mockFetch
+		);
+
+		expect(result.data[0]).toEqual(
+			expect.objectContaining({
+				id: "nest-1",
+				pokemon_id: 25,
+				spawnpoints: 4,
+				pokemon_avg: 1,
+				polygon: [
+					[
+						{ x: -0.71, y: 52.49 },
+						{ x: -0.69, y: 52.49 },
+						{ x: -0.71, y: 52.49 }
+					]
+				]
+			})
+		);
 	});
 
 	it("proxies the legacy laboratory lure URL through the configured Kanto API", async () => {

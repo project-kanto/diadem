@@ -4,19 +4,17 @@
 	import Attribute from "@/components/menus/filters/filterset/Attribute.svelte";
 	import AttributesOverview from "@/components/menus/filters/filterset/AttributesOverview.svelte";
 	import SliderRange from "@/components/ui/input/slider/SliderRange.svelte";
+	import Button from "@/components/ui/input/Button.svelte";
 	import type { FiltersetPokemon } from "@/lib/features/filters/filtersets";
 	import { makeAttributePokemonLabel } from "@/lib/features/filters/makeAttributeChipLabel";
 	import { getCurrentSelectedFilterset } from "@/lib/features/filters/filtersetPageData.svelte.js";
 	import * as m from "@/lib/paraglide/messages";
-	import AppearanceAttribute from "@/components/menus/filters/filterset/pokemon/AppearanceAttribute.svelte";
 	import { changeAttributeMinMax } from "@/lib/features/filters/filtersetUtils.svelte";
-	import AppearanceChips from "@/components/menus/filters/filterset/pokemon/AppearanceChips.svelte";
 	import IvChips from "@/components/menus/filters/filterset/pokemon/IvChips.svelte";
 	import IvAttribute from "@/components/menus/filters/filterset/pokemon/IvAttribute.svelte";
 	import {
-		getAttributeLabelCp,
-		getAttributeLabelLevel,
 		getAttributeLabelRank,
+		getPokemonRarityLabel,
 		pokemonBounds
 	} from "@/lib/features/filters/filterUtilsPokemon";
 	import PokemonFilterDisplay from "@/components/menus/filters/filterset/pokemon/PokemonFilterDisplay.svelte";
@@ -26,6 +24,16 @@
 	import { hasFeatureAnywhere } from "@/lib/services/user/checkPerm";
 	import { getUserDetails } from "@/lib/services/user/userDetails.svelte";
 	import { Features } from "@/lib/utils/features";
+	import type { PokemonRarity } from "@/lib/types/mapObjectData/pokemon";
+
+	const rarityOptions: PokemonRarity[] = ["common", "uncommon", "rare", "ultra rare"];
+
+	function toggleRarity(filter: FiltersetPokemon, rarity: PokemonRarity) {
+		filter.rarity = filter.rarity?.includes(rarity)
+			? filter.rarity.filter((value) => value !== rarity)
+			: [...(filter.rarity ?? []), rarity];
+		if (filter.rarity.length === 0) delete filter.rarity;
+	}
 
 	let data: FiltersetPokemon | undefined = $derived(getCurrentSelectedFilterset()?.data) as
 		| FiltersetPokemon
@@ -67,10 +75,24 @@
 						/>
 					{/snippet}
 				</Attribute>
-				<Attribute label={m.pokemon_looks()}>
-					<AppearanceChips {data} sizeBounds={pokemonBounds.size} showSize={canIv} />
+				<Attribute label={m.rarity()}>
+					<AttributeChip
+						label={(data.rarity ?? []).map(getPokemonRarityLabel).join(", ")}
+						isEmpty={!data.rarity}
+						onremove={() => delete data.rarity}
+					/>
 					{#snippet page(thisData: FiltersetPokemon)}
-						<AppearanceAttribute data={thisData} sizeBounds={pokemonBounds.size} showSize={canIv} />
+						<div class="grid grid-cols-2 gap-2">
+							{#each rarityOptions as rarity}
+								<Button
+									variant={thisData.rarity?.includes(rarity) ? "secondary" : "outline"}
+									aria-pressed={thisData.rarity?.includes(rarity) ?? false}
+									onclick={() => toggleRarity(thisData, rarity)}
+								>
+									{getPokemonRarityLabel(rarity)}
+								</Button>
+							{/each}
+						</div>
 					{/snippet}
 				</Attribute>
 			</AttributesOverview>
@@ -83,56 +105,6 @@
 								data={thisData}
 								ivBounds={pokemonBounds.iv}
 								percBounds={pokemonBounds.ivProduct}
-							/>
-						{/snippet}
-					</Attribute>
-					<Attribute label={m.cp()}>
-						<AttributeChip
-							label={getAttributeLabelCp(data?.cp)}
-							isEmpty={!data.cp}
-							onremove={() => delete data.cp}
-						/>
-						{#snippet page(thisData: FiltersetPokemon)}
-							<SliderRange
-								min={pokemonBounds.cp.min}
-								max={pokemonBounds.cp.max}
-								title={m.cp()}
-								valueMin={thisData.cp?.min ?? pokemonBounds.cp.min}
-								valueMax={thisData.cp?.max ?? pokemonBounds.cp.max}
-								onchange={([min, max]) =>
-									changeAttributeMinMax(
-										thisData,
-										"cp",
-										pokemonBounds.cp.min,
-										pokemonBounds.cp.max,
-										min,
-										max
-									)}
-							/>
-						{/snippet}
-					</Attribute>
-					<Attribute label={m.level()}>
-						<AttributeChip
-							label={getAttributeLabelLevel(data?.level)}
-							isEmpty={!data.level}
-							onremove={() => delete data.level}
-						/>
-						{#snippet page(thisData: FiltersetPokemon)}
-							<SliderRange
-								min={pokemonBounds.level.min}
-								max={pokemonBounds.level.max}
-								title={m.level()}
-								valueMin={thisData.level?.min ?? pokemonBounds.level.min}
-								valueMax={thisData.level?.max ?? pokemonBounds.level.max}
-								onchange={([min, max]) =>
-									changeAttributeMinMax(
-										thisData,
-										"level",
-										pokemonBounds.level.min,
-										pokemonBounds.level.max,
-										min,
-										max
-									)}
 							/>
 						{/snippet}
 					</Attribute>

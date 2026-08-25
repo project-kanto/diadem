@@ -153,7 +153,7 @@ export function getDefaultUserSettings(): UserSettings {
 				level: 14,
 				wayfarerMode: false
 			},
-			nest: { category: "nest", ...defaultFilter() },
+			nest: { category: "nest", ...defaultFilter(true) },
 			spawnpoint: { category: "spawnpoint", ...defaultFilter() },
 			route: { category: "route", ...defaultFilter() },
 			tappable: { category: "tappable", ...defaultFilter() }

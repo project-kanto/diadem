@@ -295,10 +295,10 @@ class PokestopRenderer extends MapObjectRenderer<PokestopData> {
 						imageId: "quest-background-flower",
 						imageSize: rewardProps.imageSize * QUEST_BACKGROUND_FLOWER_SCALE,
 						selectedScale,
-						imageOffset: [
-							(imageOffset[0] + QUEST_BACKGROUND_FLOWER_OFFSET),
-							(imageOffset[1] + QUEST_BACKGROUND_FLOWER_OFFSET)
-						],
+							imageOffset: [
+								(imageOffset[0] + QUEST_BACKGROUND_FLOWER_OFFSET),
+								(imageOffset[1] + QUEST_BACKGROUND_FLOWER_OFFSET)
+							],
 						id: data.mapId,
 						expires
 					},
@@ -545,18 +545,7 @@ class NestRenderer extends MapObjectRenderer<NestData> {
 		const selectedScale = isSelected ? SELECTED_MAP_OBJECT_SCALE : 1;
 		if (!shouldDisplayNest(data)) return [];
 
-		let polygon: MultiPolygon["coordinates"];
-		if (Array.isArray(data.polygon[0][0])) {
-			polygon = data.polygon.map((polygon) =>
-				// @ts-ignore
-				polygon.map((ring) => ring.map((p) => [p.x, p.y]))
-			);
-		} else {
-			// @ts-ignore
-			polygon = [data.polygon.map((ring) => ring.map((p) => [p.x, p.y]))];
-		}
-
-		return [
+		const features: MapObjectFeature[] = [
 			getIconFeature(data.mapId, [data.lon, data.lat], {
 				imageUrl: getIconPokemon(data),
 				id: data.mapId,
@@ -571,7 +560,21 @@ class NestRenderer extends MapObjectRenderer<NestData> {
 				fillColor: this.cssColor("--nest-circle"),
 				radius: 52 * this.iconModifiers.scale,
 				selectedScale
-			}),
+			})
+		];
+		if (!data.polygon) return features;
+
+		let polygon: MultiPolygon["coordinates"];
+		if (Array.isArray(data.polygon[0][0])) {
+			polygon = data.polygon.map((polygon) =>
+				// @ts-ignore
+				polygon.map((ring) => ring.map((p) => [p.x, p.y]))
+			);
+		} else {
+			// @ts-ignore
+			polygon = [data.polygon.map((ring) => ring.map((p) => [p.x, p.y]))];
+		}
+		features.push(
 			getPolygonFeature(data.mapId, polygon, {
 				id: data.mapId,
 				strokeColor: this.cssColor("--nest-polygon-stroke"),
@@ -579,7 +582,8 @@ class NestRenderer extends MapObjectRenderer<NestData> {
 				selectedFill: this.cssColor("--nest-polygon-selected"),
 				isSelected
 			})
-		];
+		);
+		return features;
 	}
 }
 

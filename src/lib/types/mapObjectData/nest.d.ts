@@ -8,7 +8,7 @@ export type NestData = {
 	lat: number;
 	lon: number;
 	name: string | null;
-	polygon: { x: number; y: number }[][] | { x: number; y: number }[][][]; // y is lat, x is lon
+	polygon?: { x: number; y: number }[][] | { x: number; y: number }[][][]; // y is lat, x is lon
 	area_name: string | null;
 	spawnpoints: number | null;
 	m2: number | null;
