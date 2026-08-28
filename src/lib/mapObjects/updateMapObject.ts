@@ -1,4 +1,5 @@
 import { getActiveSearch } from "@/lib/features/activeSearch.svelte.js";
+import { getKantoScannerAccess } from "@/lib/features/kantoScanner.svelte";
 import type { AnyFilter, FilterS2Cell } from "@/lib/features/filters/filters";
 import { updateFeatures } from "@/lib/map/featuresGen.svelte";
 import { getMap } from "@/lib/map/map.svelte";
@@ -58,7 +59,7 @@ export async function fetchMapObjects<T extends MapData>(
 	since?: number
 ): Promise<MapObjectResponse<T> | undefined> {
 	const body: MapObjectRequestData = {
-		...getBounds(),
+		...bounds,
 		filter,
 		since
 	};
@@ -186,7 +187,12 @@ export async function updateMapObject(
 	return clearLimitAfterRender ? type : undefined;
 }
 
-export async function updateAllMapObjects(removeOld: boolean = true, onlyChanged: boolean = false) {
+export async function updateAllMapObjects(
+	removeOld: boolean = true,
+	onlyChanged: boolean = false,
+	kantoScan: boolean = false
+) {
+	if (getKantoScannerAccess() && !kantoScan) return;
 	if (onlyChanged && currentController) return;
 
 	currentController?.abort();

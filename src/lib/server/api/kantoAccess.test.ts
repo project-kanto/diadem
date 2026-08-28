@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { claimKantoScan, limitKantoBounds, type KantoScannerAccess } from "./kantoAccess";
+import {
+	claimKantoScan,
+	getKantoScanRetryAfter,
+	limitKantoBounds,
+	type KantoScannerAccess
+} from "./kantoAccess";
 
 describe("limitKantoBounds", () => {
 	it("limits a large viewport around its requested centre", () => {
@@ -16,6 +21,7 @@ describe("limitKantoBounds", () => {
 		} satisfies KantoScannerAccess;
 		const bounds = { minLat: 50, maxLat: 50.01, minLon: -1, maxLon: -0.99 };
 		expect(claimKantoScan(access, bounds, 1000).allowed).toBe(true);
+		expect(getKantoScanRetryAfter(access, 2000)).toBe(14);
 		expect(claimKantoScan(access, bounds, 2000).allowed).toBe(true);
 		expect(claimKantoScan(access, { ...bounds, minLat: 51 }, 3000).allowed).toBe(false);
 		expect(claimKantoScan(access, bounds, 16_000).allowed).toBe(true);

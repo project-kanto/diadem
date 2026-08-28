@@ -671,5 +671,11 @@
 	"pogo_data": "data",
 	"pokemon_picker_count": "{count} selected",
 	"pokemon_height": "Height",
-	"pokemon_weight": "Weight"
+	"pokemon_weight": "Weight",
+	"scanner_title": "Area scanner",
+	"scanner_scan_area": "Scan this area",
+	"scanner_scanning": "Scanning…",
+	"scanner_ready_in": "Ready in {seconds}s",
+	"scanner_ready": "Ready to scan",
+	"scanner_failed": "Scan failed — try again"
 }

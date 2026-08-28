@@ -55,6 +55,12 @@
 	import { getFeatureJump } from "$lib/utils/geo";
 	import { jumpTo } from "$lib/map/utils";
 	import { setSearchedGeometry } from "$lib/services/search.svelte";
+	import {
+		getKantoScannerAccess,
+		getKantoScannerCenter,
+		setKantoScannerCenter
+	} from "@/lib/features/kantoScanner.svelte";
+	import { circle as makeCircle, featureCollection } from "@turf/turf";
 
 	let {
 		map = $bindable()
@@ -63,9 +69,29 @@
 	} = $props();
 
 	const mapPosition = getInitialMapPositionMain();
+	const scannerArea = $derived(
+		featureCollection(
+			getKantoScannerAccess()
+				? [
+						makeCircle(
+							getKantoScannerCenter(),
+							getKantoScannerAccess()!.state.scanner_radius_meters,
+							{ units: "meters", steps: 96 }
+						)
+					]
+				: []
+		)
+	);
+
+	function updateScannerCenter(map: maplibre.Map) {
+		const center = map.getCenter();
+		setKantoScannerCenter(center.lng, center.lat);
+	}
 
 	async function onMapLoad(map: maplibre.Map) {
 		setMap(map);
+		updateScannerCenter(map);
+		map.on("move", () => updateScannerCenter(map));
 
 		map.on("moveend", onMapMoveEnd);
 		map.on("contextmenu", onContextMenu);
@@ -92,7 +118,8 @@
 				LoadedFeature.MASTER_FILE,
 				LoadedFeature.ICON_SETS,
 				LoadedFeature.USER_DETAILS,
-				LoadedFeature.SERVER_USER_SETTINGS
+				LoadedFeature.SERVER_USER_SETTINGS,
+				LoadedFeature.KANTO_SCANNER
 			)
 		) {
 			const directLinkFeature = getDirectLinkFeature();
@@ -163,6 +190,16 @@
 	initialCenter={Coords.infer(mapPosition.center)}
 	initialZoom={mapPosition.zoom}
 >
+	{#if getKantoScannerAccess()}
+		<GeoJSON id="kantoScannerArea" data={scannerArea}>
+			<FillLayer
+				id="kantoScannerAreaFill"
+				paint={{ "fill-color": "#6366f1", "fill-opacity": 0.12 }}
+			/>
+			<LineLayer id="kantoScannerAreaLine" paint={{ "line-color": "#6366f1", "line-width": 2 }} />
+		</GeoJSON>
+	{/if}
+
 	<GeometryLayer id={MapSourceId.SELECTED_WEATHER} reactive={false} />
 	<GeometryLayer
 		show={() => getOpenedMenu() === Menu.SCOUT}

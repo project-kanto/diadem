@@ -1,6 +1,7 @@
 import { AGGRESSIVE_UPDATE_TIME } from "@/lib/constants";
 import { updateAllMapObjects } from "@/lib/mapObjects/updateMapObject";
 import { getUserSettings } from "@/lib/services/userSettings.svelte.js";
+import { getKantoScannerAccess } from "@/lib/features/kantoScanner.svelte";
 
 export let loadMapObjectInterval: undefined | NodeJS.Timeout;
 let isLoadMapObjectsRunning: boolean = false;
@@ -18,6 +19,7 @@ async function runLoadMapObjects() {
 
 export function resetLoadMapObjects() {
 	clearLoadMapObjectsInterval();
+	if (getKantoScannerAccess()) return;
 	if (getUserSettings().loadMapObjectsWhileMoving) {
 		loadMapObjectInterval = setInterval(runLoadMapObjects, AGGRESSIVE_UPDATE_TIME);
 	}
