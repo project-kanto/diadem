@@ -30,7 +30,7 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 	const permCheckTime = performance.now();
 
 	const data: MapObjectRequestData = await request.json();
-	if (locals.kantoScannerAccess) {
+	if (locals.kantoScannerAccess && !locals.kantoScannerAccess.unlimited) {
 		const scan = claimKantoScan(locals.kantoScannerAccess, data);
 		if (!scan.allowed) {
 			return respond(

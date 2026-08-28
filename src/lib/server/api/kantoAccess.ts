@@ -5,7 +5,10 @@ import TTLCache from "@isaacs/ttlcache";
 export type KantoScannerAccess = {
 	subject: string;
 	paid: boolean;
+	unlimited?: boolean;
 	state: {
+		tier?: string;
+		active_until?: string;
 		scanner_radius_meters: number;
 		scanner_cooldown_seconds: number;
 		scanner_expires_at?: string;
@@ -42,6 +45,7 @@ const scanWindows = new TTLCache<string, { opened: number; latitude: number; lon
 });
 
 export function getKantoScanRetryAfter(access: KantoScannerAccess, now = Date.now()) {
+	if (access.unlimited) return 0;
 	const previous = scanWindows.get(access.subject);
 	if (!previous) return 0;
 	return Math.max(
@@ -53,6 +57,7 @@ export function getKantoScanRetryAfter(access: KantoScannerAccess, now = Date.no
 // Diadem requests each object family separately. Treat requests at the same centre during
 // this short window as one scan, then enforce the advertised refresh cooldown.
 export function claimKantoScan(access: KantoScannerAccess, bounds: Bounds, now = Date.now()) {
+	if (access.unlimited) return { allowed: true, retryAfter: 0 };
 	const latitude = (bounds.minLat + bounds.maxLat) / 2;
 	const longitude = (bounds.minLon + bounds.maxLon) / 2;
 	const previous = scanWindows.get(access.subject);

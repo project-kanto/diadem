@@ -677,5 +677,10 @@
 	"scanner_scanning": "Scanning…",
 	"scanner_ready_in": "Ready in {seconds}s",
 	"scanner_ready": "Ready to scan",
-	"scanner_failed": "Scan failed — try again"
+	"scanner_failed": "Scan failed — try again",
+	"scanner_unlimited": "Unlimited",
+	"scanner_admin_access": "Admin · Unlimited access",
+	"scanner_offer_access": "{time} access left",
+	"scanner_membership_access": "{tier} · {time} left",
+	"scanner_access_expired": "Scanner access expired"
 }
