@@ -31,6 +31,7 @@
 	import MapMain from "@/components/map/MapMain.svelte";
 	import MapMenuUi from "@/components/ui/MapMenuUi.svelte";
 	import type maplibre from "maplibre-gl";
+	import KantoScannerControl from "@/components/map/KantoScannerControl.svelte";
 
 	let map: maplibre.Map | undefined = $state(undefined);
 
@@ -83,6 +84,7 @@
 		{/snippet}
 		{#snippet desktopRight()}
 			<div class="mb-auto mx-2 mt-safe-inset-top flex flex-col items-end gap-2">
+				<KantoScannerControl />
 				<WeatherOverview />
 				<DataLimitNotice />
 			</div>
@@ -104,6 +106,7 @@
 				class:items-end={!isUiLeft() || isMenuSidebar()}
 				class:items-start={isUiLeft() && !isMenuSidebar()}
 			>
+				<KantoScannerControl />
 				<DataLimitNotice />
 				<WeatherOverview />
 			</div>

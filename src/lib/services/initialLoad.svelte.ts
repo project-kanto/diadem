@@ -8,6 +8,7 @@ import { updateSupportedFeatures } from "@/lib/services/supportedFeatures";
 import { initAllIconSets } from "@/lib/services/uicons.svelte.js";
 import { getUserDetails, updateUserDetails } from "@/lib/services/user/userDetails.svelte.js";
 import { getUserSettingsFromServer } from "@/lib/services/userSettings.svelte.js";
+import { loadKantoScannerAccess } from "@/lib/features/kantoScanner.svelte";
 
 export enum LoadedFeature {
 	ICON_SETS = "iconSets",
@@ -17,7 +18,8 @@ export enum LoadedFeature {
 	USER_DETAILS = "userDetails",
 	REMOTE_LOCALE = "remoteLocale",
 	SERVER_USER_SETTINGS = "serverUserSettings",
-	MASTER_STATS = "masterStats"
+	MASTER_STATS = "masterStats",
+	KANTO_SCANNER = "kantoScanner"
 }
 
 let loadedFeatures: LoadedFeature[] = $state([]);
@@ -68,7 +70,8 @@ export async function load() {
 		loadingWrapper(loadMasterStats(), LoadedFeature.MASTER_STATS),
 		userDetails,
 		serverUserSettings,
-		loadingWrapper(loadRemoteLocale(getLocale()), LoadedFeature.REMOTE_LOCALE)
+		loadingWrapper(loadRemoteLocale(getLocale()), LoadedFeature.REMOTE_LOCALE),
+		loadingWrapper(loadKantoScannerAccess(), LoadedFeature.KANTO_SCANNER)
 	]);
 
 	if (browser) await loadRemoteLocale(getLocale());

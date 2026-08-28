@@ -41,6 +41,15 @@ const scanWindows = new TTLCache<string, { opened: number; latitude: number; lon
 	ttl: 60 * 60 * 1000
 });
 
+export function getKantoScanRetryAfter(access: KantoScannerAccess, now = Date.now()) {
+	const previous = scanWindows.get(access.subject);
+	if (!previous) return 0;
+	return Math.max(
+		0,
+		Math.ceil((access.state.scanner_cooldown_seconds * 1000 - (now - previous.opened)) / 1000)
+	);
+}
+
 // Diadem requests each object family separately. Treat requests at the same centre during
 // this short window as one scan, then enforce the advertised refresh cooldown.
 export function claimKantoScan(access: KantoScannerAccess, bounds: Bounds, now = Date.now()) {
