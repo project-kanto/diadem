@@ -16,11 +16,12 @@ import { getLogger } from "@/lib/utils/logger";
 import { error } from "@sveltejs/kit";
 import { constants } from "http2";
 import type { RequestHandler } from "./$types";
+import { claimKantoScan, limitKantoBounds } from "@/lib/server/api/kantoAccess";
 
 const log = getLogger("mapobjects");
 
 export const POST: RequestHandler = async ({ request, locals, params, getClientAddress }) => {
-	const rateLimitKey = locals.user?.id ?? getClientAddress();
+	const rateLimitKey = locals.kantoScannerAccess?.subject ?? locals.user?.id ?? getClientAddress();
 	const type = params.queryMapObject as MapObjectType;
 	const family = featureFamily[type];
 
@@ -29,6 +30,23 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 	const permCheckTime = performance.now();
 
 	const data: MapObjectRequestData = await request.json();
+	if (locals.kantoScannerAccess) {
+		const scan = claimKantoScan(locals.kantoScannerAccess, data);
+		if (!scan.allowed) {
+			return respond(
+				request,
+				{ data: [] },
+				{
+					status: constants.HTTP_STATUS_TOO_MANY_REQUESTS,
+					headers: { "Retry-After": String(scan.retryAfter) }
+				}
+			);
+		}
+		Object.assign(
+			data,
+			limitKantoBounds(data, locals.kantoScannerAccess.state.scanner_radius_meters)
+		);
+	}
 	const permitted = checkFeaturesInBounds(locals.perms, family, data);
 
 	if (!permitted) {

@@ -18,10 +18,11 @@ import { paraglideMiddleware } from "@/lib/paraglide/server";
 import { sequence } from "@sveltejs/kit/hooks";
 import { setServerLoggerFactory } from "@/lib/utils/logger";
 import { getServerLogger } from "@/lib/server/logging";
-import { getClientConfig } from "@/lib/services/config/config.server";
+import { getClientConfig, getServerConfig } from "@/lib/services/config/config.server";
 import { setConfig } from "@/lib/services/config/config";
 import { getDisallowedPaths } from "@/lib/utils/disallowedPaths";
 import { appPath } from "@/lib/utils/appPath";
+import { getKantoScannerAccess } from "@/lib/server/api/kantoAccess";
 
 process.title = "Diadem";
 
@@ -74,6 +75,7 @@ function updatePermissionsLocked(user: User, accessToken: string, thisFetch: typ
 }
 
 const handleAuth: Handle = async ({ event, resolve }) => {
+	event.locals.kantoScannerAccess = null;
 	if (process.env.BUILD_TARGET === "native") {
 		event.locals.perms = { everywhere: [], areas: [] };
 		event.locals.user = null;
@@ -92,6 +94,33 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 		event.locals.user = null;
 		event.locals.session = null;
 		return resolve(event);
+	}
+
+	const mapRoot = appPath("/").replace(/\/$/, "");
+	const needsKantoAccess =
+		Boolean(getServerConfig().kanto) &&
+		(event.url.pathname === mapRoot ||
+			event.url.pathname === `${mapRoot}/` ||
+			event.url.pathname.startsWith(`${mapRoot}/api/`));
+	if (needsKantoAccess) {
+		const result = await getKantoScannerAccess(
+			event.request.headers.get("cookie") ?? "",
+			event.fetch
+		);
+		if (!result || "response" in result) {
+			const status = result?.response?.status ?? 503;
+			if (
+				event.request.method === "GET" &&
+				event.request.headers.get("accept")?.includes("text/html")
+			) {
+				return new Response(null, {
+					status: 303,
+					headers: { location: "/account?error=Scanner+access+required" }
+				});
+			}
+			return new Response("scanner access required", { status });
+		}
+		event.locals.kantoScannerAccess = result.access;
 	}
 
 	event.locals.perms = await getEveryonePerms(event.fetch);
