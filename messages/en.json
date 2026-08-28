@@ -678,8 +678,11 @@
 	"scanner_ready_in": "Ready in {seconds}s",
 	"scanner_ready": "Ready to scan",
 	"scanner_failed": "Scan failed — try again",
-	"scanner_unlimited": "Unlimited",
-	"scanner_admin_access": "Admin · Unlimited access",
+	"scanner_admin_access": "Admin · No radius or cooldown limit",
+	"scanner_current_view": "Current view",
+	"scanner_scan_visible_area": "Scan visible area",
+	"scanner_no_results": "No map items found in this view",
+	"scanner_results": "{count} map items found",
 	"scanner_offer_access": "{time} access left",
 	"scanner_membership_access": "{tier} · {time} left",
 	"scanner_access_expired": "Scanner access expired"

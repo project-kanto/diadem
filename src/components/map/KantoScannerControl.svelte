@@ -6,6 +6,8 @@
 		setKantoScannerCooldown
 	} from "@/lib/features/kantoScanner.svelte";
 	import { getBounds } from "@/lib/mapObjects/mapBounds";
+	import { getMapObjectCounts } from "@/lib/mapObjects/mapObjectsState.svelte";
+	import { allMapObjectTypes } from "@/lib/mapObjects/mapObjectTypes";
 	import { updateAllMapObjects } from "@/lib/mapObjects/updateMapObject";
 	import * as m from "@/lib/paraglide/messages";
 	import { appPath } from "@/lib/utils/appPath";
@@ -15,11 +17,12 @@
 	let now = $state(Date.now());
 	let scanning = $state(false);
 	let failed = $state(false);
+	let scanResult = $state<number | null>(null);
 	const access = $derived(getKantoScannerAccess());
 	const remaining = $derived(Math.max(0, Math.ceil((getKantoScannerCooldownUntil() - now) / 1000)));
 	const radius = $derived(
 		access?.unlimited
-			? m.scanner_unlimited()
+			? m.scanner_current_view()
 			: access && access.state.scanner_radius_meters >= 1000
 				? `${access.state.scanner_radius_meters / 1000} km`
 				: `${access?.state.scanner_radius_meters ?? 0} m`
@@ -72,6 +75,7 @@
 			onclick={async () => {
 				scanning = true;
 				failed = false;
+				scanResult = null;
 				try {
 					const response = await fetch(appPath("/api/scanner"), {
 						method: "POST",
@@ -82,7 +86,13 @@
 					if (!response.ok && response.status !== 429) throw new Error(`scan ${response.status}`);
 					setKantoScannerCooldown(data.retryAfter ?? Number(response.headers.get("Retry-After")));
 					now = Date.now();
-					if (response.ok) await updateAllMapObjects(false, false, true);
+					if (response.ok) {
+						await updateAllMapObjects(false, false, true);
+						scanResult = allMapObjectTypes.reduce(
+							(total, type) => total + getMapObjectCounts(type).showing,
+							0
+						);
+					}
 				} catch {
 					failed = true;
 				} finally {
@@ -95,10 +105,20 @@
 				? m.scanner_scanning()
 				: remaining > 0
 					? m.scanner_ready_in({ seconds: remaining })
-					: m.scanner_scan_area()}
+					: access.unlimited
+						? m.scanner_scan_visible_area()
+						: m.scanner_scan_area()}
 		</Button>
 		<div class="mt-1.5 min-h-4 text-center text-xs text-muted-foreground" aria-live="polite">
-			{failed ? m.scanner_failed() : remaining === 0 && !scanning ? m.scanner_ready() : ""}
+			{failed
+				? m.scanner_failed()
+				: scanResult === 0
+					? m.scanner_no_results()
+					: scanResult !== null
+						? m.scanner_results({ count: scanResult })
+						: remaining === 0 && !scanning
+							? m.scanner_ready()
+							: ""}
 		</div>
 	</div>
 {/if}
