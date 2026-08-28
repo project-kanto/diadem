@@ -5,6 +5,7 @@ import type { Perms } from "@/lib/utils/features";
 import type { BetterAuthSessionData } from "@/lib/server/auth/betterAuth";
 import type { User } from "@/lib/server/db/internal/schema";
 import type { OverlayEntry } from "@/lib/ui/overlays.svelte";
+import type { KantoScannerAccess } from "@/lib/server/api/kantoAccess";
 
 declare global {
 	namespace App {
@@ -17,6 +18,7 @@ declare global {
 			user: User | null;
 			session: BetterAuthSessionData | null;
 			perms: Perms;
+			kantoScannerAccess: KantoScannerAccess | null;
 		}
 	}
 }
