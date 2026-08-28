@@ -26,4 +26,20 @@ describe("limitKantoBounds", () => {
 		expect(claimKantoScan(access, { ...bounds, minLat: 51 }, 3000).allowed).toBe(false);
 		expect(claimKantoScan(access, bounds, 16_000).allowed).toBe(true);
 	});
+
+	it("does not limit administrator scans", () => {
+		const access = {
+			subject: "admin-test",
+			paid: true,
+			unlimited: true,
+			state: { scanner_radius_meters: 0, scanner_cooldown_seconds: 0 }
+		} satisfies KantoScannerAccess;
+		const bounds = { minLat: 50, maxLat: 50.01, minLon: -1, maxLon: -0.99 };
+		expect(claimKantoScan(access, bounds, 1000)).toEqual({ allowed: true, retryAfter: 0 });
+		expect(claimKantoScan(access, { ...bounds, minLat: 51 }, 1001)).toEqual({
+			allowed: true,
+			retryAfter: 0
+		});
+		expect(getKantoScanRetryAfter(access, 1001)).toBe(0);
+	});
 });

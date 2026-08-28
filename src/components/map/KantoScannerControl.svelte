@@ -18,9 +18,39 @@
 	const access = $derived(getKantoScannerAccess());
 	const remaining = $derived(Math.max(0, Math.ceil((getKantoScannerCooldownUntil() - now) / 1000)));
 	const radius = $derived(
-		access && access.state.scanner_radius_meters >= 1000
-			? `${access.state.scanner_radius_meters / 1000} km`
-			: `${access?.state.scanner_radius_meters ?? 0} m`
+		access?.unlimited
+			? m.scanner_unlimited()
+			: access && access.state.scanner_radius_meters >= 1000
+				? `${access.state.scanner_radius_meters / 1000} km`
+				: `${access?.state.scanner_radius_meters ?? 0} m`
+	);
+	const accessExpiry = $derived(
+		access?.paid ? access.state.active_until : access?.state.scanner_expires_at
+	);
+	const accessRemaining = $derived(
+		accessExpiry ? Math.max(0, Math.ceil((Date.parse(accessExpiry) - now) / 1000)) : undefined
+	);
+	const accessTime = $derived.by(() => {
+		if (accessRemaining === undefined) return "";
+		const days = Math.floor(accessRemaining / 86_400);
+		const hours = Math.floor((accessRemaining % 86_400) / 3600);
+		const minutes = Math.floor((accessRemaining % 3600) / 60);
+		const seconds = accessRemaining % 60;
+		if (days) return `${days}d ${hours}h`;
+		if (hours) return `${hours}h ${minutes}m`;
+		return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+	});
+	const accessStatus = $derived(
+		access?.unlimited
+			? m.scanner_admin_access()
+			: accessRemaining === 0
+				? m.scanner_access_expired()
+				: access?.paid
+					? m.scanner_membership_access({
+							tier: access.state.tier === "charizard" ? "Charizard" : "Pikachu",
+							time: accessTime
+						})
+					: m.scanner_offer_access({ time: accessTime })
 	);
 
 	onMount(() => {
@@ -35,9 +65,10 @@
 			<span class="font-semibold">{m.scanner_title()}</span>
 			<span class="text-muted-foreground">{radius}</span>
 		</div>
+		<div class="mb-2 text-xs text-muted-foreground" aria-live="polite">{accessStatus}</div>
 		<Button
 			class="w-full"
-			disabled={scanning || remaining > 0}
+			disabled={scanning || remaining > 0 || accessRemaining === 0}
 			onclick={async () => {
 				scanning = true;
 				failed = false;

@@ -71,7 +71,7 @@
 	const mapPosition = getInitialMapPositionMain();
 	const scannerArea = $derived(
 		featureCollection(
-			getKantoScannerAccess()
+			getKantoScannerAccess() && !getKantoScannerAccess()!.unlimited
 				? [
 						makeCircle(
 							getKantoScannerCenter(),
@@ -190,7 +190,7 @@
 	initialCenter={Coords.infer(mapPosition.center)}
 	initialZoom={mapPosition.zoom}
 >
-	{#if getKantoScannerAccess()}
+	{#if getKantoScannerAccess() && !getKantoScannerAccess()!.unlimited}
 		<GeoJSON id="kantoScannerArea" data={scannerArea}>
 			<FillLayer
 				id="kantoScannerAreaFill"
