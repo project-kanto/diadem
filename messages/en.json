@@ -685,5 +685,12 @@
 	"scanner_results": "{count} map items found",
 	"scanner_offer_access": "{time} access left",
 	"scanner_membership_access": "{tier} · {time} left",
-	"scanner_access_expired": "Scanner access expired"
+	"scanner_access_expired": "Scanner access expired",
+	"scanner_access_needed": "Scanner access needed",
+	"scanner_access_options": "Unlock the map with a Pikachu or Charizard membership, or complete one quick LootLabs task for 60 minutes of free scanner access.",
+	"scanner_view_memberships": "View memberships",
+	"scanner_earn_hour_free": "Earn one hour free",
+	"scanner_sign_in_needed": "Sign in to use the scanner",
+	"scanner_sign_in_desc": "Scanner access is tied to your Kanto account. Sign in first, then use your membership or claim one free hour through LootLabs.",
+	"scanner_sign_in": "Sign in with Discord"
 }
