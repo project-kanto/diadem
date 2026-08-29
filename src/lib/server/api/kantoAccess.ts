@@ -26,6 +26,11 @@ export async function getKantoScannerAccess(cookie: string, thisFetch: typeof fe
 	return { access: (await response.json()) as KantoScannerAccess } as const;
 }
 
+export function getKantoAccessRoute(status: number) {
+	if (status === 401) return "/access?reason=signin";
+	if (status === 402) return "/access";
+}
+
 export function limitKantoBounds(bounds: Bounds, radiusMeters: number): Bounds {
 	const centerLat = (bounds.minLat + bounds.maxLat) / 2;
 	const centerLon = (bounds.minLon + bounds.maxLon) / 2;

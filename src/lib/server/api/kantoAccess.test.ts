@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
 	claimKantoScan,
+	getKantoAccessRoute,
 	getKantoScanRetryAfter,
 	limitKantoBounds,
 	type KantoScannerAccess
 } from "./kantoAccess";
 
 describe("limitKantoBounds", () => {
+	it("routes only actionable scanner access failures", () => {
+		expect(getKantoAccessRoute(401)).toBe("/access?reason=signin");
+		expect(getKantoAccessRoute(402)).toBe("/access");
+		expect(getKantoAccessRoute(503)).toBeUndefined();
+	});
+
 	it("limits a large viewport around its requested centre", () => {
 		const bounds = limitKantoBounds({ minLat: 50, maxLat: 52, minLon: -1, maxLon: 1 }, 500);
 		expect(bounds.maxLat - bounds.minLat).toBeCloseTo(1000 / 111_320, 6);

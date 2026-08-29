@@ -22,7 +22,7 @@ import { getClientConfig, getServerConfig } from "@/lib/services/config/config.s
 import { setConfig } from "@/lib/services/config/config";
 import { getDisallowedPaths } from "@/lib/utils/disallowedPaths";
 import { appPath } from "@/lib/utils/appPath";
-import { getKantoScannerAccess } from "@/lib/server/api/kantoAccess";
+import { getKantoAccessRoute, getKantoScannerAccess } from "@/lib/server/api/kantoAccess";
 
 process.title = "Diadem";
 
@@ -109,13 +109,15 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 		);
 		if (!result || "response" in result) {
 			const status = result?.response?.status ?? 503;
+			const accessRoute = getKantoAccessRoute(status);
 			if (
+				accessRoute &&
 				event.request.method === "GET" &&
 				event.request.headers.get("accept")?.includes("text/html")
 			) {
 				return new Response(null, {
 					status: 303,
-					headers: { location: "/account?error=Scanner+access+required" }
+					headers: { location: appPath(accessRoute) }
 				});
 			}
 			return new Response("scanner access required", { status });
