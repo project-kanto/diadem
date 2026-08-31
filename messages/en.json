@@ -681,7 +681,7 @@
 	"scanner_admin_access": "Admin · No radius or cooldown limit",
 	"scanner_current_view": "Current view",
 	"scanner_scan_visible_area": "Scan visible area",
-	"scanner_no_results": "No map items found in this view",
+	"scanner_no_results": "Scan complete — no matching items. Scanned area: {area}. Move the map and scan again.",
 	"scanner_results": "{count} map items found",
 	"scanner_offer_access": "{time} access left",
 	"scanner_membership_access": "{tier} · {time} left",
@@ -692,5 +692,6 @@
 	"scanner_earn_hour_free": "Earn one hour free",
 	"scanner_sign_in_needed": "Sign in to use the scanner",
 	"scanner_sign_in_desc": "Scanner access is tied to your Kanto account. Sign in first, then use your membership or claim one free hour through LootLabs.",
-	"scanner_sign_in": "Sign in with Discord"
+	"scanner_sign_in": "Sign in with Discord",
+	"scanner_radius": "{distance} radius"
 }

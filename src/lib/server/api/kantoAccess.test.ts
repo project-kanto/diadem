@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	claimKantoScan,
+	filterKantoRadius,
 	getKantoAccessRoute,
 	getKantoScanRetryAfter,
 	limitKantoBounds,
@@ -18,6 +19,19 @@ describe("limitKantoBounds", () => {
 		const bounds = limitKantoBounds({ minLat: 50, maxLat: 52, minLon: -1, maxLon: 1 }, 500);
 		expect(bounds.maxLat - bounds.minLat).toBeCloseTo(1000 / 111_320, 6);
 		expect((bounds.minLat + bounds.maxLat) / 2).toBeCloseTo(51, 8);
+	});
+
+	it("excludes the bounding-box corners outside the advertised radius", () => {
+		const viewport = { minLat: -1, maxLat: 1, minLon: -1, maxLon: 1 };
+		const bounds = limitKantoBounds(viewport, 1000);
+		const centre = { id: "centre", lat: 0, lon: 0 };
+		const northEdge = { id: "north", lat: bounds.maxLat, lon: 0 };
+		const corner = { id: "corner", lat: bounds.maxLat, lon: bounds.maxLon };
+
+		expect(filterKantoRadius([centre, northEdge, corner], viewport, 1000)).toEqual([
+			centre,
+			northEdge
+		]);
 	});
 
 	it("groups one map refresh then enforces the supporter cooldown", () => {
