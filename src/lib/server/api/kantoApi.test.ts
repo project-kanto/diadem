@@ -25,7 +25,7 @@ describe("queryKantoMapObjects", () => {
 	});
 
 	it("maps Kanto features into Diadem objects", async () => {
-		const mockFetch = vi.fn(async (url: URL | RequestInfo) => {
+		const fetchSpy = vi.fn(async (url: URL | RequestInfo) => {
 			if (String(url).includes("lure-spawns")) {
 				return new Response(
 					JSON.stringify({
@@ -79,7 +79,8 @@ describe("queryKantoMapObjects", () => {
 					]
 				})
 			);
-		}) as unknown as typeof fetch;
+		});
+		const mockFetch = fetchSpy as unknown as typeof fetch;
 
 		const result = await queryKantoMapObjects(
 			MapObjectType.POKEMON,
@@ -115,7 +116,27 @@ describe("queryKantoMapObjects", () => {
 				first_seen_timestamp: 1786996770
 			})
 		]);
-		expect(mockFetch).toHaveBeenCalledTimes(2);
+		expect(fetchSpy).toHaveBeenCalledTimes(2);
+		expect(fetchSpy.mock.calls[0][0]).toEqual(
+			new URL(
+				"https://dev.kanto.ac/map/api/map/v1/features?south=52.4&west=-0.8&north=52.6&east=-0.6&pokemon=1"
+			)
+		);
+	});
+
+	it("rejects a truncated Kanto response instead of reporting an empty scan", async () => {
+		const mockFetch = vi.fn(
+			async () => new Response(JSON.stringify({ features: [], truncated: true, mode: "density" }))
+		) as unknown as typeof fetch;
+
+		await expect(
+			queryKantoMapObjects(
+				MapObjectType.NEST,
+				{ minLat: 52.4, minLon: -0.8, maxLat: 52.6, maxLon: -0.6 },
+				100,
+				mockFetch
+			)
+		).rejects.toMatchObject({ status: 503 });
 	});
 
 	it("maps one Kanto nest polygon into a Diadem nest", async () => {
@@ -171,6 +192,11 @@ describe("queryKantoMapObjects", () => {
 					]
 				]
 			})
+		);
+		expect(mockFetch).toHaveBeenCalledWith(
+			new URL(
+				"https://dev.kanto.ac/map/api/map/v1/features?south=52.4&west=-0.8&north=52.6&east=-0.6&pokemon=1"
+			)
 		);
 	});
 
@@ -232,6 +258,11 @@ describe("queryKantoMapObjects", () => {
 				total_cp: 4_000,
 				defenders: [expect.objectContaining({ pokemon_id: 25, cp_now: 500 })]
 			})
+		);
+		expect(mockFetch).toHaveBeenCalledWith(
+			new URL(
+				"https://dev.kanto.ac/map/api/map/v1/features?south=52.4&west=-0.8&north=52.6&east=-0.6&forts=1"
+			)
 		);
 	});
 

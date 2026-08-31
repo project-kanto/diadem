@@ -190,10 +190,17 @@ export async function queryKantoMapObjects(
 	const base = getServerConfig().kanto?.url;
 	if (!base) error(500, "Kanto API is not configured");
 
-	const response = await thisFetch(kantoURL(base, "api/map/v1/features", bounds));
+	const url = kantoURL(base, "api/map/v1/features", bounds);
+	if (type === MapObjectType.POKEMON || type === MapObjectType.NEST) {
+		url.searchParams.set("pokemon", "1");
+	} else if (type === MapObjectType.POKESTOP || type === MapObjectType.GYM) {
+		url.searchParams.set("forts", "1");
+	}
+	const response = await thisFetch(url);
 	if (!response.ok) error(response.status, `Kanto API returned ${response.status}`);
 
 	const source = (await response.json()) as KantoResponse;
+	if (source.truncated) error(503, "Kanto API result was truncated");
 	if (type === MapObjectType.POKEMON) {
 		const lureResponse = await thisFetch(kantoURL(base, "api/map/v1/lure-spawns", bounds), {
 			cache: "no-store"
