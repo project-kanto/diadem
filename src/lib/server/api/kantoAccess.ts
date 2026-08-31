@@ -1,6 +1,7 @@
 import type { Bounds } from "@/lib/mapObjects/mapBounds";
 import { getServerConfig } from "@/lib/services/config/config.server";
 import TTLCache from "@isaacs/ttlcache";
+import { distance } from "@turf/turf";
 
 export type KantoScannerAccess = {
 	subject: string;
@@ -31,18 +32,37 @@ export function getKantoAccessRoute(status: number) {
 	if (status === 402) return "/access";
 }
 
+function getBoundsCenter(bounds: Bounds) {
+	return {
+		latitude: (bounds.minLat + bounds.maxLat) / 2,
+		longitude: (bounds.minLon + bounds.maxLon) / 2
+	};
+}
+
 export function limitKantoBounds(bounds: Bounds, radiusMeters: number): Bounds {
-	const centerLat = (bounds.minLat + bounds.maxLat) / 2;
-	const centerLon = (bounds.minLon + bounds.maxLon) / 2;
+	const center = getBoundsCenter(bounds);
 	const latitudePad = radiusMeters / 111_320;
 	const longitudePad =
-		latitudePad / Math.max(Math.abs(Math.cos((centerLat * Math.PI) / 180)), 1e-6);
+		latitudePad / Math.max(Math.abs(Math.cos((center.latitude * Math.PI) / 180)), 1e-6);
 	return {
-		minLat: Math.max(bounds.minLat, centerLat - latitudePad),
-		maxLat: Math.min(bounds.maxLat, centerLat + latitudePad),
-		minLon: Math.max(bounds.minLon, centerLon - longitudePad),
-		maxLon: Math.min(bounds.maxLon, centerLon + longitudePad)
+		minLat: Math.max(bounds.minLat, center.latitude - latitudePad),
+		maxLat: Math.min(bounds.maxLat, center.latitude + latitudePad),
+		minLon: Math.max(bounds.minLon, center.longitude - longitudePad),
+		maxLon: Math.min(bounds.maxLon, center.longitude + longitudePad)
 	};
+}
+
+export function filterKantoRadius<T extends { lat: number; lon: number }>(
+	items: T[],
+	bounds: Bounds,
+	radiusMeters: number
+): T[] {
+	const center = getBoundsCenter(bounds);
+	return items.filter(
+		(item) =>
+			distance([center.longitude, center.latitude], [item.lon, item.lat], { units: "meters" }) <=
+			radiusMeters
+	);
 }
 
 const scanWindows = new TTLCache<string, { opened: number; latitude: number; longitude: number }>({
@@ -63,8 +83,7 @@ export function getKantoScanRetryAfter(access: KantoScannerAccess, now = Date.no
 // this short window as one scan, then enforce the advertised refresh cooldown.
 export function claimKantoScan(access: KantoScannerAccess, bounds: Bounds, now = Date.now()) {
 	if (access.unlimited) return { allowed: true, retryAfter: 0 };
-	const latitude = (bounds.minLat + bounds.maxLat) / 2;
-	const longitude = (bounds.minLon + bounds.maxLon) / 2;
+	const { latitude, longitude } = getBoundsCenter(bounds);
 	const previous = scanWindows.get(access.subject);
 	const cooldown = access.state.scanner_cooldown_seconds * 1000;
 	if (previous && now - previous.opened < cooldown) {

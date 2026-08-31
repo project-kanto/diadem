@@ -16,7 +16,7 @@ import { getLogger } from "@/lib/utils/logger";
 import { error } from "@sveltejs/kit";
 import { constants } from "http2";
 import type { RequestHandler } from "./$types";
-import { claimKantoScan, limitKantoBounds } from "@/lib/server/api/kantoAccess";
+import { claimKantoScan, filterKantoRadius, limitKantoBounds } from "@/lib/server/api/kantoAccess";
 
 const log = getLogger("mapobjects");
 
@@ -30,6 +30,7 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 	const permCheckTime = performance.now();
 
 	const data: MapObjectRequestData = await request.json();
+	let scannerArea: { bounds: MapObjectRequestData; radiusMeters: number } | undefined;
 	if (locals.kantoScannerAccess && !locals.kantoScannerAccess.unlimited) {
 		const scan = claimKantoScan(locals.kantoScannerAccess, data);
 		if (!scan.allowed) {
@@ -42,10 +43,11 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 				}
 			);
 		}
-		Object.assign(
-			data,
-			limitKantoBounds(data, locals.kantoScannerAccess.state.scanner_radius_meters)
-		);
+		scannerArea = {
+			bounds: { ...data },
+			radiusMeters: locals.kantoScannerAccess.state.scanner_radius_meters
+		};
+		Object.assign(data, limitKantoBounds(data, scannerArea.radiusMeters));
 	}
 	const permitted = checkFeaturesInBounds(locals.perms, family, data);
 
@@ -88,6 +90,11 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 		await rateLimitReward(rateLimitKey, requestLimit, type);
 		throw e;
 	});
+	if (scannerArea) {
+		const originalCount = result.data.length;
+		result.data = filterKantoRadius(result.data, scannerArea.bounds, scannerArea.radiusMeters);
+		result.examined = Math.max(0, result.examined - (originalCount - result.data.length));
+	}
 
 	let chargeForAmount = result.examined;
 	const hardLimit = requestLimits[type];

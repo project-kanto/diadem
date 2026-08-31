@@ -20,12 +20,15 @@
 	let scanResult = $state<number | null>(null);
 	const access = $derived(getKantoScannerAccess());
 	const remaining = $derived(Math.max(0, Math.ceil((getKantoScannerCooldownUntil() - now) / 1000)));
-	const radius = $derived(
+	const scanArea = $derived(
 		access?.unlimited
 			? m.scanner_current_view()
-			: access && access.state.scanner_radius_meters >= 1000
-				? `${access.state.scanner_radius_meters / 1000} km`
-				: `${access?.state.scanner_radius_meters ?? 0} m`
+			: m.scanner_radius({
+					distance:
+						access && access.state.scanner_radius_meters >= 1000
+							? `${access.state.scanner_radius_meters / 1000} km`
+							: `${access?.state.scanner_radius_meters ?? 0} m`
+				})
 	);
 	const accessExpiry = $derived(
 		access?.paid ? access.state.active_until : access?.state.scanner_expires_at
@@ -66,7 +69,7 @@
 	<div class="pointer-events-auto w-52 rounded-lg border bg-card p-3 shadow-lg">
 		<div class="mb-2 flex items-center justify-between gap-3 text-sm">
 			<span class="font-semibold">{m.scanner_title()}</span>
-			<span class="text-muted-foreground">{radius}</span>
+			<span class="text-muted-foreground">{scanArea}</span>
 		</div>
 		<div class="mb-2 text-xs text-muted-foreground" aria-live="polite">{accessStatus}</div>
 		<Button
@@ -113,7 +116,7 @@
 			{failed
 				? m.scanner_failed()
 				: scanResult === 0
-					? m.scanner_no_results()
+					? m.scanner_no_results({ area: scanArea })
 					: scanResult !== null
 						? m.scanner_results({ count: scanResult })
 						: remaining === 0 && !scanning
