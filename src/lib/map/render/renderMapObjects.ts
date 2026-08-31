@@ -48,6 +48,7 @@ import type { TappableData } from "@/lib/types/mapObjectData/tappable";
 import { currentTimestamp } from "@/lib/utils/currentTimestamp";
 import { getActiveGymFilter, getRaidPokemon } from "@/lib/utils/gymUtils";
 import { getActivePokestopFilter, givesQuestBackground, isIncidentInvasion } from "@/lib/utils/pokestopUtils";
+import { isLurePokemon } from "@/lib/utils/pokemonSource";
 import { getStationPokemon, isMaxBattleActive } from "@/lib/utils/stationUtils";
 import { cellToPolygon } from "@/lib/mapObjects/s2cells";
 import type { MultiPolygon, Polygon } from "geojson";
@@ -495,12 +496,24 @@ class PokemonRenderer extends MapObjectRenderer<PokemonData> {
 		if (data.expire_timestamp && data.expire_timestamp < timestamp) {
 			return [];
 		}
-		return this.renderVisualModifiers(
+		const features = this.renderVisualModifiers(
 			data,
 			data.id,
 			matchPokemonFilterset(data),
 			this.getBasicProps(data, selectedScale, { expires: data.expire_timestamp })
 		);
+		if (isLurePokemon(data)) {
+			features.push(
+				getCircleFeature(data.mapId + "-lure-circle", [data.lon, data.lat], {
+					id: data.mapId,
+					strokeColor: this.cssColor("--lure-circle-stroke"),
+					fillColor: this.cssColor("--lure-circle"),
+					radius: 52 * this.iconModifiers.scale,
+					selectedScale
+				})
+			);
+		}
+		return features;
 	}
 }
 
