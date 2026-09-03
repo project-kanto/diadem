@@ -259,17 +259,6 @@ raid_egg = { scale = 0.3, offsetY = -62 }
 raid_egg_6 = { scale = 0.3, offsetY = -135 }
 
 [[client.uiconSets]]
-id = "pogoOutline"
-name = "GO"
-url = "https://raw.githubusercontent.com/whitewillem/PogoAssets/refs/heads/main/uicons-outline/"
-
-base = { scale = 0.5 }
-pokemon = { default = true, scale = 0.4 }
-gym = { default = true, offsetY = -26, offsetX = -14 }
-raid_pokemon = { scale = 0.8, offsetX = -11, offsetY = -30 }
-raid_egg = { scale = 0.24, offsetX = -25, offsetY = -40 }
-
-[[client.uiconSets]]
 id = "home"
 name = "Home"
 url = "https://raw.githubusercontent.com/nileplumb/PkmnHomeIcons/master/UICONS_OS_128/"
