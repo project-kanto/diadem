@@ -12,7 +12,7 @@ import type {
 	FilterTappable
 } from "@/lib/features/filters/filters";
 import { MapObjectType } from "@/lib/mapObjects/mapObjectTypes";
-import { getConfig } from "@/lib/services/config/config";
+import { getConfig, resolveConfiguredUiconSet } from "@/lib/services/config/config";
 import type { AnySearchEntry } from "@/lib/services/search.svelte";
 import { getDefaultMapStyle } from "@/lib/services/themeMode";
 import { getUserDetails } from "@/lib/services/user/userDetails.svelte.js";
@@ -246,6 +246,19 @@ function migrateUserSettings(settings: LegacyUserSettings): UserSettings {
 			}
 		}
 		delete settings.expandedMapObjects;
+	}
+
+	for (const objectType of [
+		MapObjectType.POKEMON,
+		MapObjectType.POKESTOP,
+		MapObjectType.GYM,
+		MapObjectType.STATION,
+		MapObjectType.TAPPABLE
+	] as const) {
+		settings.uiconSet![objectType] = resolveConfiguredUiconSet(
+			settings.uiconSet![objectType],
+			getDefaultIconSet(objectType)
+		);
 	}
 
 	return settings as UserSettings;

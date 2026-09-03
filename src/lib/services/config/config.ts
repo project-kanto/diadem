@@ -9,3 +9,11 @@ export function setConfig(newConfig: ClientConfig) {
 export function getConfig() {
 	return config;
 }
+
+export function resolveConfiguredUiconSet(
+	iconSet: { id: string; url: string },
+	fallback: { id: string; url: string }
+) {
+	const configuredIconSet = config.uiconSets.find(({ id }) => id === iconSet.id);
+	return configuredIconSet ? { id: configuredIconSet.id, url: configuredIconSet.url } : fallback;
+}
