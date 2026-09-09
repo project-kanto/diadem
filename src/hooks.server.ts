@@ -78,6 +78,7 @@ function updatePermissionsLocked(user: User, accessToken: string, thisFetch: typ
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	event.locals.kantoScannerAccess = null;
+	event.locals.kantoScannerCookie = "";
 	if (process.env.BUILD_TARGET === "native") {
 		event.locals.perms = { everywhere: [], areas: [] };
 		event.locals.user = null;
@@ -139,10 +140,10 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 		const scoped = event.request.headers.get("x-kanto-scanner");
 		const session = scoped ? openScannerSession(scoped, scannerKey, audience) : null;
 		if (scoped && !session) return new Response(null, { status: 401 });
-		const result = await getKantoScannerAccess(
-			session ? `__Host-kanto_session=${session}` : (event.request.headers.get("cookie") ?? ""),
-			event.fetch
-		);
+		const cookie = session
+			? `__Host-kanto_session=${session}`
+			: (event.request.headers.get("cookie") ?? "");
+		const result = await getKantoScannerAccess(cookie, event.fetch);
 		if (!result || "response" in result) {
 			const status = result?.response?.status ?? 503;
 			const accessRoute = getKantoAccessRoute(status);
@@ -159,6 +160,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 			return new Response("scanner access required", { status });
 		}
 		event.locals.kantoScannerAccess = result.access;
+		event.locals.kantoScannerCookie = cookie;
 	}
 
 	event.locals.perms = await getEveryonePerms(event.fetch);

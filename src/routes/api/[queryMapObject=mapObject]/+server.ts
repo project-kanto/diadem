@@ -86,7 +86,7 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 		data.since,
 		requestLimit,
 		permissionContext,
-		locals.kantoScannerAccess ? (request.headers.get("cookie") ?? "") : ""
+		locals.kantoScannerCookie
 	).catch(async (e) => {
 		await rateLimitReward(rateLimitKey, requestLimit, type);
 		throw e;

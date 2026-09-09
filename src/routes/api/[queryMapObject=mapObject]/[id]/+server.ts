@@ -43,7 +43,7 @@ export const GET: RequestHandler = async ({ params, locals, fetch, getClientAddr
 		params.id,
 		fetch,
 		permissionContext,
-		locals.kantoScannerAccess ? (request.headers.get("cookie") ?? "") : ""
+		locals.kantoScannerCookie
 	);
 
 	if (!data) error(constants.HTTP_STATUS_NOT_FOUND);
