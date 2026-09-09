@@ -35,3 +35,19 @@ Diadem is built on top of a decade worth of pogo tooling. Especially noteworthy 
 ## License
 
 Published under the [AGPL](https://github.com/ccev/diadem/blob/main/LICENSE) license.
+
+## Launcher scanner
+
+`/map/?launcher=1` is a chrome-free launcher frame. The document is public but its
+API remains gated. Native code exchanges the existing Kanto login at
+`POST /map/api/launcher-session` for a five-minute encrypted scanner-only token;
+the parent delivers it by an origin-checked message. It stays in memory, never in
+URLs or browser storage. Every scanner API request rechecks the underlying session
+and entitlement. Live and Dev tokens are bound to their backend and instance key.
+The container entrypoint creates one temporary key shared by its workers; restarting
+invalidates old tokens. Set `KANTO_LAUNCHER_SCANNER_KEY` to a 32+ character secret if
+multiple scanner replicas need to share sessions. This does not expose Tauri IPC.
+
+Checks: `pnpm test`, `pnpm build`, then `node scripts/test-launcher-scanner.mjs`.
+Use `--serve` for a synthetic browser fixture on ports 3900/3901; it does not use
+real accounts. The launcher owns navigation, sign-in prompts and renewal.
