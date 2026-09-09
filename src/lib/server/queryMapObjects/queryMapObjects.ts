@@ -43,13 +43,16 @@ export async function queryMapObjects<Data extends MapData>(
 	polygon: PermittedPolygon = null,
 	since?: number,
 	limit?: number,
-	context?: FeaturePermissionContext
+	context?: FeaturePermissionContext,
+	cookie = ""
 ): Promise<MapObjectResponse<Data>> {
 	if (filter !== undefined && !filter.enabled) {
 		return { examined: 0, data: [] };
 	}
 	if (getServerConfig().kanto) {
-		return queryKantoMapObjects(type, bounds, limit ?? 10_000) as Promise<MapObjectResponse<Data>>;
+		return queryKantoMapObjects(type, bounds, limit ?? 10_000, fetch, cookie) as Promise<
+			MapObjectResponse<Data>
+		>;
 	}
 
 	return getQuery(type).getMultiple(bounds, filter, polygon, since, limit, context);
@@ -59,10 +62,11 @@ export async function querySingleMapObject(
 	type: MapObjectType,
 	id: string,
 	thisFetch: typeof fetch = fetch,
-	context?: FeaturePermissionContext
+	context?: FeaturePermissionContext,
+	cookie = ""
 ) {
 	if (getServerConfig().kanto) {
-		return queryKantoMapObject(type, id, thisFetch);
+		return queryKantoMapObject(type, id, thisFetch, cookie);
 	}
 	return getQuery(type).getSingle(id, thisFetch, context);
 }

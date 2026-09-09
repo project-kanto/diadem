@@ -292,3 +292,37 @@ describe("queryKantoMapObjects", () => {
 		);
 	});
 });
+
+it("forwards only the current session for personal wild and lure results", async () => {
+	const fetchSpy = vi.fn(async (url: URL | RequestInfo, init?: RequestInit) => {
+		expect(new URL(String(url)).searchParams.get("personal")).toBe("1");
+		expect(init).toMatchObject({
+			headers: { cookie: "__Host-kanto_session=account-a" },
+			cache: "no-store"
+		});
+		return new Response(
+			JSON.stringify({
+				features: [
+					{
+						id: String(url),
+						kind: "pokemon",
+						latitude: 1,
+						longitude: 2,
+						pokemon_id: 25,
+						shiny: true
+					}
+				],
+				updated_at: "2026-09-09T00:00:00Z"
+			})
+		);
+	});
+	const result = await queryKantoMapObjects(
+		MapObjectType.POKEMON,
+		{ minLat: 1, minLon: 2, maxLat: 1.01, maxLon: 2.01 },
+		100,
+		fetchSpy as typeof fetch,
+		"__Host-kanto_session=account-a"
+	);
+	expect(fetchSpy).toHaveBeenCalledTimes(2);
+	expect(result.data.every((p) => (p as { shiny?: boolean }).shiny === true)).toBe(true);
+});

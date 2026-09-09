@@ -62,6 +62,7 @@ const QuestRewardSchema = z.object({
 export const FiltersetPokemonSchema = BaseFiltersetSchema.extend({
 	pokemon: z.array(PokemonSchema).optional(),
 	rarity: z.array(z.enum(["common", "uncommon", "rare", "ultra rare"])).optional(),
+	shiny: z.boolean().optional(),
 	iv: MinMaxSchema.optional(),
 	cp: MinMaxSchema.optional(),
 	ivAtk: MinMaxSchema.optional(),

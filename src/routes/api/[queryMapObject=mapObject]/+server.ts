@@ -85,7 +85,8 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 		permitted.polygon,
 		data.since,
 		requestLimit,
-		permissionContext
+		permissionContext,
+		locals.kantoScannerAccess ? (request.headers.get("cookie") ?? "") : ""
 	).catch(async (e) => {
 		await rateLimitReward(rateLimitKey, requestLimit, type);
 		throw e;
@@ -112,6 +113,7 @@ export const POST: RequestHandler = async ({ request, locals, params, getClientA
 
 	const queryTime = performance.now();
 	const response = respond(request, result);
+	if (locals.kantoScannerAccess) response.headers.set("Cache-Control", "private, no-store");
 	const serializeTime = performance.now();
 
 	log.info(
