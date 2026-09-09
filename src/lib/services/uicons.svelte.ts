@@ -18,6 +18,8 @@ import { isMaxBattleActive } from "@/lib/utils/stationUtils";
 import type { AnyFilter } from "$lib/features/filters/filters";
 import { appPath } from "@/lib/utils/appPath";
 
+import { getKantoScannerAccess } from "@/lib/features/kantoScanner.svelte";
+
 export const DEFAULT_UICONS = "DEFAULT";
 
 const iconSets: { [key: string]: UICONS } = {};
@@ -106,6 +108,15 @@ export function getIconPokemon(
 	},
 	options?: IconOptions
 ) {
+	if (
+		getKantoScannerAccess() &&
+		data.shiny &&
+		data.pokemon_id &&
+		data.pokemon_id >= 1 &&
+		data.pokemon_id <= 151
+	) {
+		return appPath(`/assets/kanto-shiny/${data.pokemon_id}`);
+	}
 	const iconSet = options?.iconSet ?? getUserSettings().uiconSet.pokemon.id;
 	return iconSets[iconSet].pokemon(
 		data.pokemon_id,

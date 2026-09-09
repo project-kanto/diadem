@@ -24,6 +24,8 @@ import { getDisallowedPaths } from "@/lib/utils/disallowedPaths";
 import { appPath } from "@/lib/utils/appPath";
 import { getKantoAccessRoute, getKantoScannerAccess } from "@/lib/server/api/kantoAccess";
 
+import { openScannerSession, sealScannerSession } from "@/lib/server/api/launcherScanner";
+
 process.title = "Diadem";
 
 const paraglideHandle: Handle = ({ event, resolve }) =>
@@ -76,6 +78,7 @@ function updatePermissionsLocked(user: User, accessToken: string, thisFetch: typ
 
 const handleAuth: Handle = async ({ event, resolve }) => {
 	event.locals.kantoScannerAccess = null;
+	event.locals.kantoScannerCookie = "";
 	if (process.env.BUILD_TARGET === "native") {
 		event.locals.perms = { everywhere: [], areas: [] };
 		event.locals.user = null;
@@ -97,16 +100,50 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	}
 
 	const mapRoot = appPath("/").replace(/\/$/, "");
+	const scannerKey =
+		process.env.KANTO_LAUNCHER_SCANNER_KEY ||
+		getServerConfig().auth.secret ||
+		process.env.BETTER_AUTH_SECRET ||
+		process.env.AUTH_SECRET ||
+		"";
+	const audience = getServerConfig().kanto?.url || "";
+	if (audience && event.url.pathname === `${mapRoot}/api/launcher-session`) {
+		if (event.request.method !== "POST") return new Response(null, { status: 405 });
+		const session = event.request.headers
+			.get("authorization")
+			?.match(/^Bearer ([A-Za-z0-9_-]{32,256})$/)?.[1];
+		if (!session) return new Response(null, { status: 401 });
+		const access = await getKantoScannerAccess(`__Host-kanto_session=${session}`, event.fetch);
+		if (!access || "response" in access)
+			return new Response(null, { status: access?.response?.status || 503 });
+		try {
+			return Response.json(sealScannerSession(session, scannerKey, audience), {
+				headers: { "cache-control": "no-store" }
+			});
+		} catch {
+			return new Response(null, { status: 503 });
+		}
+	}
+	// The framed document contains no account data; every API request still requires access.
+	const launcherShell =
+		audience &&
+		event.request.method === "GET" &&
+		(event.url.pathname === mapRoot || event.url.pathname === `${mapRoot}/`) &&
+		event.url.searchParams.get("launcher") === "1";
 	const needsKantoAccess =
 		Boolean(getServerConfig().kanto) &&
+		!launcherShell &&
 		(event.url.pathname === mapRoot ||
 			event.url.pathname === `${mapRoot}/` ||
 			event.url.pathname.startsWith(`${mapRoot}/api/`));
 	if (needsKantoAccess) {
-		const result = await getKantoScannerAccess(
-			event.request.headers.get("cookie") ?? "",
-			event.fetch
-		);
+		const scoped = event.request.headers.get("x-kanto-scanner");
+		const session = scoped ? openScannerSession(scoped, scannerKey, audience) : null;
+		if (scoped && !session) return new Response(null, { status: 401 });
+		const cookie = session
+			? `__Host-kanto_session=${session}`
+			: (event.request.headers.get("cookie") ?? "");
+		const result = await getKantoScannerAccess(cookie, event.fetch);
 		if (!result || "response" in result) {
 			const status = result?.response?.status ?? 503;
 			const accessRoute = getKantoAccessRoute(status);
@@ -123,6 +160,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 			return new Response("scanner access required", { status });
 		}
 		event.locals.kantoScannerAccess = result.access;
+		event.locals.kantoScannerCookie = cookie;
 	}
 
 	event.locals.perms = await getEveryonePerms(event.fetch);
@@ -130,7 +168,16 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	event.locals.session = null;
 
 	if (!isAuthEnabled()) {
-		return resolve(event);
+		const response = await resolve(event);
+		if (launcherShell) {
+			response.headers.set(
+				"Content-Security-Policy",
+				"frame-ancestors tauri://localhost http://tauri.localhost https://tauri.localhost http://localhost:1420"
+			);
+			response.headers.delete("X-Frame-Options");
+			response.headers.set("Referrer-Policy", "no-referrer");
+		}
+		return response;
 	}
 
 	const authSession = await getAuthSession(event);

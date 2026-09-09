@@ -55,6 +55,8 @@ export function generatePokemonFilterDetails(filter: FiltersetPokemon) {
 
 	let kind = "";
 	let attributes: string[] = [];
+	if (filter.shiny !== undefined)
+		attributes.push(filter.shiny ? m.contest_shiny() : m.contest_not_shiny());
 
 	if (!filter.pokemon) {
 		kind = m.pogo_pokemon();
@@ -134,7 +136,12 @@ export function generatePokemonFilterDetails(filter: FiltersetPokemon) {
 
 	if (filter.pokemon && filter.pokemon.length === 1) {
 		// prio: pokemon icon if only one species
-		setFilterIcon(filter, { uicon: { category: IconCategory.POKEMON, params: filter.pokemon[0] } });
+		setFilterIcon(filter, {
+			uicon: {
+				category: IconCategory.POKEMON,
+				params: { ...filter.pokemon[0], shiny: filter.shiny }
+			}
+		});
 	} else if (
 		(filter.iv?.min ?? 0) >= 98 ||
 		(filter.ivAtk?.min ?? 0) + (filter.ivDef?.min ?? 0) + (filter.ivSta?.min ?? 0) >= 45
@@ -195,12 +202,17 @@ export function generatePokemonFilterDetails(filter: FiltersetPokemon) {
 		setFilterIcon(filter, {
 			uicon: {
 				category: IconCategory.POKEMON,
-				params: { pokemon_id: filter.pokemon[0].pokemon_id }
+				params: { pokemon_id: filter.pokemon[0].pokemon_id, shiny: filter.shiny }
 			}
 		});
 	} else if (filter.pokemon && filter.pokemon.length > 1) {
 		// if nothing better applies, just show the first pokemon of the list
-		setFilterIcon(filter, { uicon: { category: IconCategory.POKEMON, params: filter.pokemon[0] } });
+		setFilterIcon(filter, {
+			uicon: {
+				category: IconCategory.POKEMON,
+				params: { ...filter.pokemon[0], shiny: filter.shiny }
+			}
+		});
 	} else {
 		setFilterIcon(filter, {
 			uicon: { category: IconCategory.ITEM, params: { item: 1 } }

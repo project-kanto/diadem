@@ -17,6 +17,7 @@ function pokemonMatchesFilterset(data: PokemonData, filterset: FiltersetPokemon)
 	) {
 		return false;
 	}
+	if (filterset.shiny !== undefined && Boolean(data.shiny) !== filterset.shiny) return false;
 	if (filterset.rarity && (!data.rarity || !filterset.rarity.includes(data.rarity))) return false;
 
 	if (filterset.iv && !inRange(data.iv, filterset.iv)) return false;

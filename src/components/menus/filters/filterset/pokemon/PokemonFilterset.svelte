@@ -75,6 +75,37 @@
 						/>
 					{/snippet}
 				</Attribute>
+				<Attribute label={m.contest_shiny()}>
+					<AttributeChip
+						label={data.shiny === undefined
+							? m.any()
+							: data.shiny
+								? m.contest_shiny()
+								: m.contest_not_shiny()}
+						isEmpty={data.shiny === undefined}
+						onremove={() => delete data.shiny}
+					/>
+					{#snippet page(thisData: FiltersetPokemon)}
+						<div class="grid grid-cols-3 gap-2">
+							{#each [undefined, true, false] as shiny}
+								<Button
+									variant={thisData.shiny === shiny ? "secondary" : "outline"}
+									aria-pressed={thisData.shiny === shiny}
+									onclick={() => {
+										if (shiny === undefined) delete thisData.shiny;
+										else thisData.shiny = shiny;
+									}}
+								>
+									{shiny === undefined
+										? m.any()
+										: shiny
+											? m.contest_shiny()
+											: m.contest_not_shiny()}
+								</Button>
+							{/each}
+						</div>
+					{/snippet}
+				</Attribute>
 				<Attribute label={m.rarity()}>
 					<AttributeChip
 						label={(data.rarity ?? []).map(getPokemonRarityLabel).join(", ")}

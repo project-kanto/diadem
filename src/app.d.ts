@@ -19,6 +19,7 @@ declare global {
 			session: BetterAuthSessionData | null;
 			perms: Perms;
 			kantoScannerAccess: KantoScannerAccess | null;
+			kantoScannerCookie: string;
 		}
 	}
 }

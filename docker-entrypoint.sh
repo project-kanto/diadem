@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
 
+# Shared by every worker; sessions expire on restart and the launcher renews them.
+if [ -z "${KANTO_LAUNCHER_SCANNER_KEY:-}" ]; then
+    KANTO_LAUNCHER_SCANNER_KEY=$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')
+    export KANTO_LAUNCHER_SCANNER_KEY
+fi
+
 # drizzle-kit push needs --force because the container has no interactive TTY.
 # Only skip when the current auth schema exists; older installs may have just the legacy user table.
 

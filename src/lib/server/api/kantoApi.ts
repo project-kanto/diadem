@@ -17,6 +17,7 @@ type KantoFeature = {
 	team?: string;
 	prestige?: number;
 	pokemon_id?: number;
+	shiny?: boolean;
 	attack_iv?: number;
 	defense_iv?: number;
 	stamina_iv?: number;
@@ -97,6 +98,7 @@ function mapKantoFeature(feature: KantoFeature, updated: number): MapData {
 		return {
 			...common,
 			pokemon_id: feature.pokemon_id ?? 0,
+			shiny: feature.shiny,
 			atk_iv: attack,
 			def_iv: defense,
 			sta_iv: stamina,
@@ -185,7 +187,8 @@ export async function queryKantoMapObjects(
 	type: MapObjectType,
 	bounds: Bounds,
 	limit: number,
-	thisFetch: typeof fetch = fetch
+	thisFetch: typeof fetch = fetch,
+	cookie = ""
 ): Promise<MapObjectResponse<MapData>> {
 	const base = getServerConfig().kanto?.url;
 	if (!base) error(500, "Kanto API is not configured");
@@ -196,13 +199,19 @@ export async function queryKantoMapObjects(
 	} else if (type === MapObjectType.POKESTOP || type === MapObjectType.GYM) {
 		url.searchParams.set("forts", "1");
 	}
-	const response = await thisFetch(url);
+	if (cookie) url.searchParams.set("personal", "1");
+	const response = cookie
+		? await thisFetch(url, { headers: { cookie }, cache: "no-store" })
+		: await thisFetch(url);
 	if (!response.ok) error(response.status, `Kanto API returned ${response.status}`);
 
 	const source = (await response.json()) as KantoResponse;
 	if (source.truncated) error(503, "Kanto API result was truncated");
 	if (type === MapObjectType.POKEMON) {
-		const lureResponse = await thisFetch(kantoURL(base, "api/map/v1/lure-spawns", bounds), {
+		const lureURL = kantoURL(base, "api/map/v1/lure-spawns", bounds);
+		if (cookie) lureURL.searchParams.set("personal", "1");
+		const lureResponse = await thisFetch(lureURL, {
+			...(cookie ? { headers: { cookie } } : {}),
 			cache: "no-store"
 		});
 		if (!lureResponse.ok)
@@ -247,7 +256,8 @@ export async function queryKantoSpecies(
 export async function queryKantoMapObject(
 	type: MapObjectType,
 	id: string,
-	thisFetch: typeof fetch = fetch
+	thisFetch: typeof fetch = fetch,
+	cookie = ""
 ): Promise<MapData | undefined> {
 	const base = getServerConfig().kanto?.url;
 	if (!base) error(500, "Kanto API is not configured");
@@ -256,7 +266,10 @@ export async function queryKantoMapObject(
 		`api/map/v1/features/${encodeURIComponent(id)}`,
 		base.endsWith("/") ? base : base + "/"
 	);
-	const response = await thisFetch(url);
+	if (cookie) url.searchParams.set("personal", "1");
+	const response = cookie
+		? await thisFetch(url, { headers: { cookie }, cache: "no-store" })
+		: await thisFetch(url);
 	if (response.status === 404) return;
 	if (!response.ok) error(response.status, `Kanto API returned ${response.status}`);
 

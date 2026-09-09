@@ -42,7 +42,8 @@ export const GET: RequestHandler = async ({ params, locals, fetch, getClientAddr
 		params.queryMapObject,
 		params.id,
 		fetch,
-		permissionContext
+		permissionContext,
+		locals.kantoScannerCookie
 	);
 
 	if (!data) error(constants.HTTP_STATUS_NOT_FOUND);
@@ -56,5 +57,5 @@ export const GET: RequestHandler = async ({ params, locals, fetch, getClientAddr
 		(performance.now() - start).toFixed(1)
 	);
 
-	return json(data);
+	return json(data, { headers: { "Cache-Control": "private, no-store" } });
 };
