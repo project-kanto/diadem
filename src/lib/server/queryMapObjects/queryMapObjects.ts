@@ -50,9 +50,14 @@ export async function queryMapObjects<Data extends MapData>(
 		return { examined: 0, data: [] };
 	}
 	if (getServerConfig().kanto) {
-		return queryKantoMapObjects(type, bounds, limit ?? 10_000, fetch, cookie) as Promise<
-			MapObjectResponse<Data>
-		>;
+		const result = await queryKantoMapObjects(type, bounds, limit ?? 10_000, fetch, cookie);
+		const query = getQuery(type);
+		return {
+			...result,
+			data: result.data.filter(
+				(item) => !filter || query.filter(item, filter, polygon, context)
+			) as Data[]
+		};
 	}
 
 	return getQuery(type).getMultiple(bounds, filter, polygon, since, limit, context);

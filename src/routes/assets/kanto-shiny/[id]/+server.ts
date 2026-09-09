@@ -1,4 +1,5 @@
 import { getServerConfig } from "@/lib/services/config/config.server";
+import sharp from "sharp";
 import { error } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 
@@ -12,7 +13,13 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
 	);
 	const response = await fetch(url);
 	if (!response.ok) error(response.status);
-	return new Response(response.body, {
+	// Match the normal UICONS' 128 px artwork bounds, not the native client's padded 256 px canvas.
+	const image = await sharp(Buffer.from(await response.arrayBuffer()))
+		.trim({ threshold: 0 })
+		.resize(128, 128, { fit: "inside" })
+		.png()
+		.toBuffer();
+	return new Response(new Uint8Array(image), {
 		headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" }
 	});
 };

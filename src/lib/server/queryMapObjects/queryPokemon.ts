@@ -51,7 +51,7 @@ export class PokemonQuery extends MapObjectQuery<PokemonData, FilterPokemon> {
 			let examined = result.examined;
 
 			if (result.limit_reached) {
-				return { data: [], examined, limitReached: true }
+				return { data: [], examined, limitReached: true };
 			}
 
 			for (const p of result.pokemon) {
@@ -72,6 +72,10 @@ export class PokemonQuery extends MapObjectQuery<PokemonData, FilterPokemon> {
 			return { data, examined };
 		}
 		error(500);
+	}
+
+	filter(data: MinMapObject<PokemonData>, filter: FilterPokemon): boolean {
+		return shouldDisplayPokemon(data as PokemonData, filter);
 	}
 
 	async querySingle(id: string, thisFetch?: typeof fetch): Promise<MinMapObject<PokemonData>[]> {
