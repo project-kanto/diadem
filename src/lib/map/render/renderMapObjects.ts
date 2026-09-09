@@ -5,7 +5,7 @@ import {
 } from "@/lib/constants";
 import { matchRaidFilterset, shouldDisplayRaid } from "@/lib/features/filterLogic/gym";
 import { shouldDisplayNest } from "@/lib/features/filterLogic/nest";
-import { matchPokemonFilterset } from "@/lib/features/filterLogic/pokemon";
+import { matchPokemonFilterset, shouldDisplayPokemon } from "@/lib/features/filterLogic/pokemon";
 import {
 	matchInvasionFilterset,
 	matchQuestFilterset,
@@ -47,7 +47,11 @@ import type { StationData } from "@/lib/types/mapObjectData/station";
 import type { TappableData } from "@/lib/types/mapObjectData/tappable";
 import { currentTimestamp } from "@/lib/utils/currentTimestamp";
 import { getActiveGymFilter, getRaidPokemon } from "@/lib/utils/gymUtils";
-import { getActivePokestopFilter, givesQuestBackground, isIncidentInvasion } from "@/lib/utils/pokestopUtils";
+import {
+	getActivePokestopFilter,
+	givesQuestBackground,
+	isIncidentInvasion
+} from "@/lib/utils/pokestopUtils";
 import { isLurePokemon } from "@/lib/utils/pokemonSource";
 import { getStationPokemon, isMaxBattleActive } from "@/lib/utils/stationUtils";
 import { cellToPolygon } from "@/lib/mapObjects/s2cells";
@@ -296,10 +300,10 @@ class PokestopRenderer extends MapObjectRenderer<PokestopData> {
 						imageId: "quest-background-flower",
 						imageSize: rewardProps.imageSize * QUEST_BACKGROUND_FLOWER_SCALE,
 						selectedScale,
-							imageOffset: [
-								(imageOffset[0] + QUEST_BACKGROUND_FLOWER_OFFSET),
-								(imageOffset[1] + QUEST_BACKGROUND_FLOWER_OFFSET)
-							],
+						imageOffset: [
+							imageOffset[0] + QUEST_BACKGROUND_FLOWER_OFFSET,
+							imageOffset[1] + QUEST_BACKGROUND_FLOWER_OFFSET
+						],
 						id: data.mapId,
 						expires
 					},
@@ -491,6 +495,7 @@ class GymRenderer extends MapObjectRenderer<GymData> {
 
 class PokemonRenderer extends MapObjectRenderer<PokemonData> {
 	public render(data: PokemonData, isSelected: boolean, isSelectedOverwrite: boolean) {
+		if (!isSelectedOverwrite && !shouldDisplayPokemon(data)) return [];
 		const selectedScale = isSelected ? SELECTED_MAP_OBJECT_SCALE : 1;
 		const timestamp = currentTimestamp();
 		if (data.expire_timestamp && data.expire_timestamp < timestamp) {
