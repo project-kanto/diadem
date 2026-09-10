@@ -128,7 +128,9 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	const launcherShell =
 		audience &&
 		event.request.method === "GET" &&
-		(event.url.pathname === mapRoot || event.url.pathname === `${mapRoot}/`) &&
+		(event.url.pathname === mapRoot ||
+			event.url.pathname === `${mapRoot}/` ||
+			event.url.pathname === `${mapRoot}/access`) &&
 		event.url.searchParams.get("launcher") === "1";
 	const needsKantoAccess =
 		Boolean(getServerConfig().kanto) &&

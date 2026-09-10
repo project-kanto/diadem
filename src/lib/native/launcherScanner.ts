@@ -8,6 +8,27 @@ const parents = new Set([
 export async function installLauncherScanner() {
 	if (window.parent === window || new URLSearchParams(location.search).get("launcher") !== "1")
 		return;
+	// Tasks and account pages need the browser's normal cookies and payment/pop-up support.
+	document.addEventListener(
+		"click",
+		(event) => {
+			const link = (event.target as Element | null)?.closest("a");
+			if (!link) return;
+			const url = new URL(link.href, location.href);
+			if (
+				url.origin !== location.origin ||
+				!["/account", "/support", "/earn/scanner", "/auth/discord/login"].includes(url.pathname)
+			)
+				return;
+			event.preventDefault();
+			window.parent.postMessage({ type: "kanto-scanner-open", path: url.pathname }, "*");
+		},
+		true
+	);
+	if (location.pathname.endsWith("/access")) {
+		window.parent.postMessage({ type: "kanto-scanner-ready" }, "*");
+		return;
+	}
 	let token = "";
 	let renewalRequested = false;
 	const original = window.fetch.bind(window);
