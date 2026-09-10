@@ -11,6 +11,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
 		`static/sprites/shiny/${String(id).padStart(3, "0")}.png`,
 		base.endsWith("/") ? base : base + "/"
 	);
+	url.searchParams.set("v", "3");
 	const response = await fetch(url);
 	if (!response.ok) error(response.status);
 	// Match the normal UICONS' 128 px artwork bounds, not the native client's padded 256 px canvas.

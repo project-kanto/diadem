@@ -115,7 +115,7 @@ export function getIconPokemon(
 		data.pokemon_id >= 1 &&
 		data.pokemon_id <= 151
 	) {
-		return appPath(`/assets/kanto-shiny/${data.pokemon_id}?v=2`);
+		return appPath(`/assets/kanto-shiny/${data.pokemon_id}?v=3`);
 	}
 	const iconSet = options?.iconSet ?? getUserSettings().uiconSet.pokemon.id;
 	return iconSets[iconSet].pokemon(
