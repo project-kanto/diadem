@@ -18,6 +18,7 @@
 	import { getIconItem, getIconPokemon } from "$lib/services/uicons.svelte";
 	import { getPokemonStats as getMasterPokemonStats, type PokemonStats } from "$lib/features/masterStats.svelte";
 	import type { PokemonData, PvpStats } from "$lib/types/mapObjectData/pokemon";
+	import { nameWithDisguise } from "$lib/utils/pokemonSource";
 	import { isPointInAllowedArea } from "$lib/services/user/checkPerm";
 	import { getUserDetails } from "$lib/services/user/userDetails.svelte";
 	import { Features } from "$lib/utils/features";
@@ -86,7 +87,7 @@
 		data = data as PokemonData;
 		return {
 			type: m.wild_pokemon(),
-			title: pokemonName(data),
+			title: popupTitle(data),
 			image,
 			overview,
 			main
@@ -98,6 +99,13 @@
 
 	function pokemonName(data: Partial<PokemonData>) {
 		return mPokemon(data);
+	}
+
+	function popupTitle(data: PokemonData) {
+		const disguise = data.display_pokemon_id
+			? pokemonName({ pokemon_id: data.display_pokemon_id, form: data.display_pokemon_form })
+			: undefined;
+		return nameWithDisguise(pokemonName(data), disguise);
 	}
 
 	function speciesName(data: PokemonData) {
