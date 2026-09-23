@@ -326,3 +326,27 @@ it("forwards only the current session for personal wild and lure results", async
 	expect(fetchSpy).toHaveBeenCalledTimes(2);
 	expect(result.data.every((p) => (p as { shiny?: boolean }).shiny === true)).toBe(true);
 });
+
+it("shows what a Ditto is disguised as", async () => {
+	const fetchSpy = vi.fn(
+		async () =>
+			new Response(
+				JSON.stringify({
+					features: [
+						{ id: "ditto", kind: "pokemon", latitude: 1, longitude: 2, pokemon_id: 132, disguised_as: 16 },
+						{ id: "pidgey", kind: "pokemon", latitude: 1, longitude: 2, pokemon_id: 16 }
+					],
+					updated_at: "2026-09-23T00:00:00Z"
+				})
+			)
+	);
+	const result = await queryKantoMapObjects(
+		MapObjectType.POKEMON,
+		{ minLat: 1, minLon: 2, maxLat: 1.01, maxLon: 2.01 },
+		100,
+		fetchSpy as typeof fetch
+	);
+	const shown = result.data.map((p) => (p as { display_pokemon_id?: number }).display_pokemon_id);
+	expect(shown).toContain(16);
+	expect(shown).toContain(undefined);
+});
