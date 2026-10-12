@@ -27,6 +27,7 @@
 		id: string;
 		textOffset: [number, number];
 		timer: string;
+		legendary: boolean;
 	};
 
 	type TimerFeature = Feature<Point, TimerFeatureProperties>;
@@ -46,7 +47,12 @@
 		getMapStyleVersion();
 
 		const map = getMap();
-		if (!map || map.hasImage(TIMER_BACKGROUND_IMAGE_ID)) return;
+		if (!map) return;
+		if (!map.hasImage("legendary-timer-background")) {
+			const gold = createTimerBackgroundImage("#d5a62c");
+			if (gold) map.addImage("legendary-timer-background", gold);
+		}
+		if (map.hasImage(TIMER_BACKGROUND_IMAGE_ID)) return;
 
 		const image = createTimerBackgroundImage();
 		if (!image) return;
@@ -54,7 +60,7 @@
 		map.addImage(TIMER_BACKGROUND_IMAGE_ID, image);
 	});
 
-	function createTimerBackgroundImage() {
+	function createTimerBackgroundImage(color = TIMER_BACKGROUND_COLOR) {
 		const canvas = document.createElement("canvas");
 		canvas.width = TIMER_BACKGROUND_SIZE.width;
 		canvas.height = TIMER_BACKGROUND_SIZE.height;
@@ -62,18 +68,20 @@
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return undefined;
 
-		ctx.fillStyle = TIMER_BACKGROUND_COLOR;
+		ctx.fillStyle = color;
 		ctx.roundRect(0, 0, canvas.width, canvas.height, TIMER_BACKGROUND_SIZE.radius);
 		ctx.fill();
 
 		return ctx.getImageData(0, 0, canvas.width, canvas.height);
 	}
 
-	function formatTimer(expireTimestamp: number, timestamp: number) {
+	function formatTimer(expireTimestamp: number, timestamp: number, legendary = false) {
 		const remaining = Math.max(0, expireTimestamp - timestamp);
 		const minutes = Math.floor(remaining / 60);
 		const seconds = remaining % 60;
 
+		if (legendary)
+			return `${Math.floor(remaining / 3600)}:${String(minutes % 60).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 		if (minutes >= 60) {
 			const hours = Math.floor(minutes / 60);
 			return `${hours}h ${minutes % 60}m`;
@@ -127,8 +135,13 @@
 				},
 				properties: {
 					id: obj.mapId,
+					legendary: obj.type === MapObjectType.POKEMON && Boolean(obj.legendary),
 					textOffset: getTimerOffset(obj, hasModifierLabel),
-					timer: formatTimer(expires, currentTimestamp())
+					timer: formatTimer(
+						expires,
+						currentTimestamp(),
+						obj.type === MapObjectType.POKEMON && Boolean(obj.legendary)
+					)
 				},
 				id
 			}
@@ -136,7 +149,11 @@
 	}
 
 	function getTimerFeatureEntries(obj: MapData): TimerFeatureEntry[] {
-		if (!isPopupActionActive(obj.type, obj.mapId, PopupAction.TIMER)) return [];
+		if (
+			!(obj.type === MapObjectType.POKEMON && obj.legendary) &&
+			!isPopupActionActive(obj.type, obj.mapId, PopupAction.TIMER)
+		)
+			return [];
 
 		if (obj.type === MapObjectType.POKESTOP) {
 			return (obj.incident ?? []).map((incident, index) =>
@@ -177,7 +194,11 @@
 		features: timerFeatureEntries
 			.filter((entry) => entry.expires > now)
 			.map((entry) => {
-				entry.feature.properties.timer = formatTimer(entry.expires, now);
+				entry.feature.properties.timer = formatTimer(
+					entry.expires,
+					now,
+					entry.feature.properties.legendary
+				);
 				return entry.feature;
 			})
 	}));
@@ -187,7 +208,12 @@
 	<SymbolLayer
 		id={MapObjectLayerId.TIMER_LABELS}
 		layout={{
-			"icon-image": TIMER_BACKGROUND_IMAGE_ID,
+			"icon-image": [
+				"case",
+				["get", "legendary"],
+				"legendary-timer-background",
+				TIMER_BACKGROUND_IMAGE_ID
+			],
 			"icon-text-fit": "both",
 			"icon-text-fit-padding": [3, 7, 3, 7],
 			"icon-anchor": "top",

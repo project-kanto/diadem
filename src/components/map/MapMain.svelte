@@ -269,6 +269,38 @@
 			}}
 			eventsIfTopMost={true}
 		/>
+		<CircleLayer
+			id="legendary-glow"
+			filter={[
+				"all",
+				["==", ["get", "type"], FeatureTypes.ICON],
+				["==", ["get", "legendary"], true],
+				["!", ["has", "isModifierBadge"]],
+				["!", ["has", "isModifierUnderlay"]]
+			]}
+			paint={{
+				"circle-radius": 30,
+				"circle-color": "#ffd13b",
+				"circle-opacity": 0.65,
+				"circle-blur": 0.65
+			}}
+		/>
+		<CircleLayer
+			id="legendary-ring"
+			filter={[
+				"all",
+				["==", ["get", "type"], FeatureTypes.ICON],
+				["==", ["get", "legendary"], true],
+				["!", ["has", "isModifierBadge"]],
+				["!", ["has", "isModifierUnderlay"]]
+			]}
+			paint={{
+				"circle-radius": 24,
+				"circle-color": "transparent",
+				"circle-stroke-color": "#ffda51",
+				"circle-stroke-width": 2
+			}}
+		/>
 		<MapObjectIconLayer
 			id={MapObjectLayerId.ICONS}
 			hoverCursor="pointer"

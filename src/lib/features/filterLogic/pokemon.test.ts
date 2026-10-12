@@ -29,3 +29,19 @@ describe("shiny species filtering", () => {
 		}
 	});
 });
+
+describe("legendary filtering", () => {
+	it("includes all five Gen 1 legendaries, including Mew, and stacks with shiny", () => {
+		for (let id = 1; id <= 151; id++)
+			for (const shiny of [true, false]) {
+				const filter = {
+					enabled: true,
+					filters: [{ enabled: true, legendary: true, shiny: true }]
+				} as FilterPokemon;
+				const pokemon = { pokemon_id: id, form: 0, shiny } as PokemonData;
+				expect(Boolean(matchPokemonFilterset(pokemon, filter))).toBe(
+					[144, 145, 146, 150, 151].includes(id) && shiny
+				);
+			}
+	});
+});

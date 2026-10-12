@@ -143,10 +143,11 @@ abstract class MapObjectRenderer<MapObject extends MapData> {
 	protected getBasicProps(
 		data: MapObject,
 		selectedScale: number,
-		options?: { expires?: number | null; icon?: string }
+		options?: { expires?: number | null; icon?: string; legendary?: boolean }
 	) {
 		return {
 			imageUrl: options?.icon ?? getIconForMap(data),
+			legendary: options?.legendary,
 			id: data.mapId,
 			imageSize: this.iconModifiers.scale,
 			selectedScale,
@@ -166,7 +167,7 @@ abstract class MapObjectRenderer<MapObject extends MapData> {
 	protected renderBasicIcon(
 		data: MapObject,
 		selectedScale: number,
-		options?: { expires?: number | null; icon?: string }
+		options?: { expires?: number | null; icon?: string; legendary?: boolean }
 	): MapObjectFeature {
 		return this.getFeature(data, this.getBasicProps(data, selectedScale, options));
 	}
@@ -505,7 +506,10 @@ class PokemonRenderer extends MapObjectRenderer<PokemonData> {
 			data,
 			data.id,
 			matchPokemonFilterset(data),
-			this.getBasicProps(data, selectedScale, { expires: data.expire_timestamp })
+			this.getBasicProps(data, selectedScale, {
+				expires: data.expire_timestamp,
+				legendary: data.legendary ?? [144, 145, 146, 150, 151].includes(data.pokemon_id)
+			})
 		);
 		if (isLurePokemon(data)) {
 			features.push(

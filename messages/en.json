@@ -693,5 +693,7 @@
 	"scanner_sign_in_needed": "Sign in to use the scanner",
 	"scanner_sign_in_desc": "Scanner access is tied to your Kanto account. Sign in first, then use your membership or claim one free hour through LootLabs.",
 	"scanner_sign_in": "Sign in with Discord",
-	"scanner_radius": "{distance} radius"
+	"scanner_radius": "{distance} radius",
+	"legendary_pokemon": "Legendary Pokémon",
+	"non_legendary_pokemon": "Non-legendary Pokémon"
 }

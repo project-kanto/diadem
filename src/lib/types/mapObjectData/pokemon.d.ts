@@ -27,6 +27,7 @@ export type PokemonVisual = {
 	gender?: number;
 	costume?: number;
 	shiny?: boolean;
+	legendary?: boolean;
 	temp_evolution_id?: number;
 	alignment?: number;
 	bread_mode?: number;

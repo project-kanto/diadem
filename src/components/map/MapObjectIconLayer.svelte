@@ -32,6 +32,7 @@
 			["get", "imageId"]
 		],
 		"icon-overlap": "always",
+		"symbol-sort-key": ["case", ["coalesce", ["get", "legendary"], false], 1000, 0],
 		"icon-size": [
 			"*",
 			["get", "imageSize"],

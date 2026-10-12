@@ -106,6 +106,37 @@
 						</div>
 					{/snippet}
 				</Attribute>
+				<Attribute label={m.legendary_pokemon()}>
+					<AttributeChip
+						label={data.legendary === undefined
+							? m.any()
+							: data.legendary
+								? m.legendary_pokemon()
+								: m.non_legendary_pokemon()}
+						isEmpty={data.legendary === undefined}
+						onremove={() => delete data.legendary}
+					/>
+					{#snippet page(thisData: FiltersetPokemon)}
+						<div class="grid grid-cols-3 gap-2">
+							{#each [undefined, true, false] as legendary}
+								<Button
+									variant={thisData.legendary === legendary ? "secondary" : "outline"}
+									aria-pressed={thisData.legendary === legendary}
+									onclick={() => {
+										if (legendary === undefined) delete thisData.legendary;
+										else thisData.legendary = legendary;
+									}}
+								>
+									{legendary === undefined
+										? m.any()
+										: legendary
+											? m.legendary_pokemon()
+											: m.non_legendary_pokemon()}
+								</Button>
+							{/each}
+						</div>
+					{/snippet}
+				</Attribute>
 				<Attribute label={m.rarity()}>
 					<AttributeChip
 						label={(data.rarity ?? []).map(getPokemonRarityLabel).join(", ")}
