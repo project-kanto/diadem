@@ -18,6 +18,7 @@ type KantoFeature = {
 	prestige?: number;
 	pokemon_id?: number;
 	shiny?: boolean;
+	legendary?: boolean;
 	disguised_as?: number;
 	attack_iv?: number;
 	defense_iv?: number;
@@ -100,6 +101,7 @@ function mapKantoFeature(feature: KantoFeature, updated: number): MapData {
 			...common,
 			pokemon_id: feature.pokemon_id ?? 0,
 			shiny: feature.shiny,
+			legendary: feature.legendary ?? [144, 145, 146, 150, 151].includes(feature.pokemon_id ?? 0),
 			display_pokemon_id: feature.disguised_as,
 			atk_iv: attack,
 			def_iv: defense,

@@ -69,6 +69,7 @@ type QuestReward = { id: string; amount?: number };
 
 export type FiltersetPokemon = BaseFilterset & {
 	shiny?: boolean;
+	legendary?: boolean;
 	pokemon?: Pokemon[];
 	rarity?: PokemonRarity[];
 	iv?: MinMax;

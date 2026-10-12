@@ -55,6 +55,8 @@ export function generatePokemonFilterDetails(filter: FiltersetPokemon) {
 
 	let kind = "";
 	let attributes: string[] = [];
+	if (filter.legendary !== undefined)
+		attributes.push(filter.legendary ? m.legendary_pokemon() : m.non_legendary_pokemon());
 	if (filter.shiny !== undefined)
 		attributes.push(filter.shiny ? m.contest_shiny() : m.contest_not_shiny());
 

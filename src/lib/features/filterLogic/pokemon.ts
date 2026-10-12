@@ -17,6 +17,11 @@ function pokemonMatchesFilterset(data: PokemonData, filterset: FiltersetPokemon)
 	) {
 		return false;
 	}
+	if (
+		filterset.legendary !== undefined &&
+		(data.legendary ?? [144, 145, 146, 150, 151].includes(data.pokemon_id)) !== filterset.legendary
+	)
+		return false;
 	if (filterset.shiny !== undefined && Boolean(data.shiny) !== filterset.shiny) return false;
 	if (filterset.rarity && (!data.rarity || !filterset.rarity.includes(data.rarity))) return false;
 

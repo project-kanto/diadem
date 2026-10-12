@@ -11,6 +11,7 @@ export type MapObjectIconProperties = {
 	id: string;
 	type: FeatureTypes.ICON;
 	imageUrl: string;
+	legendary?: boolean;
 	imageId: string;
 	imageSize: number;
 	selectedScale: number;
